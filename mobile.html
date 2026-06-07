@@ -75,19 +75,20 @@
       line-height: 1;
       text-align: center;
       font-variant-numeric: tabular-nums;
-      margin: 20px 0 30px;
+      margin: 10px 0 20px;
       transition: color 0.2s;
     }
     .timer.paused { color: #ff4444; }
 
     /* ===== PORTRAIT LAYOUT (default) ===== */
-    .btn-area {
+    .btn-row {
       display: flex;
       width: 100%;
       padding: 0 16px;
       gap: 16px;
       flex: 1;
       align-items: flex-start;
+      min-height: 200px;
     }
 
     .btn-left {
@@ -197,29 +198,37 @@
       align-items: stretch;
       padding-top: 60px;
       padding-bottom: 65px;
-      gap: 12px;
+      gap: 14px;
     }
     body.landscape .timer {
       flex: 1 1 auto;
-      font-size: 14vh;
+      font-size: 15vh;
       margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      order: 1;
+    }
+    body.landscape .btn-row {
+      flex-direction: column;
+      width: auto;
+      padding: 0;
+      gap: 10px;
+      align-items: stretch;
     }
     body.landscape .btn-left {
       order: 0;
-      padding: 10px 8px;
+      padding: 8px;
       gap: 8px;
     }
-    body.landscape .btn-s { width: 78px; height: 40px; font-size: 11px; }
+    body.landscape .btn-s { width: 80px; height: 42px; font-size: 11px; }
     body.landscape .btn-mark {
       order: 2;
-      flex: 0 0 130px;
-      min-height: 130px;
-      height: 130px;
+      flex: 0 0 135px;
+      min-height: 135px;
+      height: 135px;
       margin: auto 0;
-      font-size: 15px;
+      font-size: 16px;
     }
     body.landscape .bottom-bar {
       gap: 10px;
@@ -260,22 +269,25 @@
 
   <!-- MAIN CONTENT -->
   <div class="main" id="main">
-    <!-- LEFT BUTTONS -->
-    <div class="btn-left">
-      <button class="btn-s green" id="startBtn" onclick="startTimer()">▶ Start</button>
-      <button class="btn-s red" id="stopBtn" onclick="stopTimer()" disabled>⏸ Stop</button>
-      <button class="btn-s orange" id="resetBtn" onclick="resetTimer()">↺ Reset</button>
-      <button class="btn-s blue" id="pdfBtn" onclick="downloadPDF()">📄 PDF</button>
-    </div>
-
     <!-- TIMER -->
     <div class="timer" id="timer">00:00</div>
 
-    <!-- MARK BUTTON -->
-    <button class="btn-mark" onclick="markQuestion()">
-      <span class="m-icon">✓</span>
-      Mark
-    </button>
+    <!-- BUTTON ROW (Portrait: left buttons + mark | Landscape handled by body class) -->
+    <div class="btn-row">
+      <!-- LEFT BUTTONS -->
+      <div class="btn-left">
+        <button class="btn-s green" id="startBtn" onclick="startTimer()">▶ Start</button>
+        <button class="btn-s red" id="stopBtn" onclick="stopTimer()" disabled>⏸ Stop</button>
+        <button class="btn-s orange" id="resetBtn" onclick="resetTimer()">↺ Reset</button>
+        <button class="btn-s blue" id="pdfBtn" onclick="downloadPDF()">📄 PDF</button>
+      </div>
+
+      <!-- MARK BUTTON -->
+      <button class="btn-mark" onclick="markQuestion()">
+        <span class="m-icon">✓</span>
+        Mark
+      </button>
+    </div>
   </div>
 
   <!-- BOTTOM BAR -->
@@ -572,5 +584,5 @@
       if (e.key.toLowerCase() === 'm') markQuestion();
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e5c901e4a4478',t:'MTc4MDgyMTcyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e66e5ed584478',t:'MTc4MDgyMjE1MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
