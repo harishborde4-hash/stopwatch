@@ -4,215 +4,312 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Giant Stopwatch</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; width: 100%; overflow: hidden; }
 
   body {
     background: #000;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    user-select: none;
   }
 
-  .display {
+  /* ===== GIANT TIMER ===== */
+  .timer {
     color: #fff;
-    font-size: 25vw;
+    font-size: 28vw;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.02em;
     line-height: 1;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    transition: color 0.15s ease;
+    transition: color 0.2s;
   }
+  .timer.paused { color: #ff4444; }
 
-  .display.paused {
-    color: #ff4444;
-  }
-
-  .buttons {
-    position: fixed;
-    bottom: 40px;
+  /* ===== BUTTONS ROW ===== */
+  .btn-row {
     display: flex;
-    gap: 20px;
-    opacity: 0.25;
-    transition: opacity 0.3s ease;
+    gap: 36px;
+    margin-top: 18px;
   }
-
-  body:hover .buttons {
-    opacity: 1;
-  }
-
   .btn {
-    padding: 16px 48px;
-    font-size: 22px;
+    background: none;
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 10px 38px;
+    font-size: 20px;
     font-weight: 600;
-    border: 3px solid #555;
-    border-radius: 50px;
-    background: transparent;
-    color: #fff;
+    color: #ccc;
     cursor: pointer;
-    transition: all 0.15s ease;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #1a1a1a; border-color: #888; color: #fff; }
+  .btn:active { transform: scale(0.96); }
+  .btn:disabled { opacity: 0.3; cursor: default; }
+  .btn:disabled:hover { background: none; border-color: #555; color: #ccc; }
+  .btn.green  { border-color: #4CAF50; color: #4CAF50; }
+  .btn.green:hover  { background: rgba(76,175,80,0.12); }
+  .btn.red    { border-color: #f44336; color: #f44336; }
+  .btn.red:hover    { background: rgba(244,67,54,0.12); }
+  .btn.orange { border-color: #ff9800; color: #ff9800; }
+  .btn.orange:hover { background: rgba(255,152,0,0.12); }
+  .btn.blue   { border-color: #2196F3; color: #2196F3; }
+  .btn.blue:hover { background: rgba(33,150,243,0.12); }
+
+  /* ===== QUESTION TAB (lower-left) ===== */
+  .question-box {
+    position: fixed;
+    bottom: 30px;
+    left: 24px;
+    width: 310px;
+    min-width: 200px;
+    min-height: 80px;
+    max-height: 70vh;
+    background: #111;
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 14px 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    resize: both;
+    scrollbar-width: thin;
+    scrollbar-color: #444 transparent;
+  }
+  .question-box::-webkit-scrollbar { width: 5px; }
+  .question-box::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+  .question-box h3 {
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    min-width: 160px;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #2a2a2a;
+    padding-bottom: 8px;
   }
 
-  .btn:hover {
-    background: #222;
-    border-color: #888;
+  /* Each entry row */
+  .entry {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 4px;
+    border-bottom: 1px solid #1a1a1a;
+    line-height: 1.4;
+    gap: 6px;
+    transition: opacity 0.3s, background 0.3s;
   }
-
-  .btn:active {
-    transform: scale(0.96);
-  }
-
-  .btn.start {
-    border-color: #4CAF50;
+  .entry .num {
     color: #4CAF50;
+    font-weight: 700;
+    font-size: 15px;
+    min-width: 28px;
+    flex-shrink: 0;
   }
-
-  .btn.start:hover {
-    background: rgba(76, 175, 80, 0.15);
-  }
-
-  .btn.stop {
-    border-color: #f44336;
-    color: #f44336;
-  }
-
-  .btn.stop:hover {
-    background: rgba(244, 67, 54, 0.15);
-  }
-
-  .btn.reset {
-    border-color: #ff9800;
-    color: #ff9800;
-  }
-
-  .btn.reset:hover {
-    background: rgba(255, 152, 0, 0.15);
-  }
-
-  .btn:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-
-  .btn:disabled:hover {
-    background: transparent;
-  }
-
-  .time-bar {
-    position: fixed;
-    bottom: 12px;
-    right: 20px;
-    color: #555;
+  .entry .wrap { flex: 1; }
+  .entry .qtext {
+    color: #ddd;
     font-size: 14px;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    font-variant-numeric: tabular-nums;
-    transition: opacity 0.3s ease;
+  }
+  .entry .time {
+    color: #555;
+    font-size: 11px;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Dustbin button */
+  .del-btn {
+    background: none;
+    border: none;
     cursor: pointer;
+    font-size: 16px;
+    opacity: 0.35;
+    transition: opacity 0.15s, transform 0.15s;
+    flex-shrink: 0;
+    padding: 0 2px;
+  }
+  .del-btn:hover { opacity: 1; transform: scale(1.2); }
+
+  /* Dead (deleted) entry */
+  .entry.dead {
+    opacity: 0.45;
+    background: #0a0a0a;
+    border-radius: 6px;
+  }
+  .entry.dead .num { color: #777; }
+  .entry.dead .qtext { color: #999; text-decoration: line-through; text-decoration-color: #444; }
+  .entry.dead .time { color: #777; }
+
+  .question-box .empty-msg {
+    color: #444;
+    font-size: 13px;
+    font-style: italic;
+    padding: 4px 0;
   }
 
-  .time-bar:hover {
-    color: #888;
-  }
-
-  .time-bar.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .toggle-time {
+  /* ===== MUMBAI TIME (lower-right) ===== */
+  .mumbai-box {
     position: fixed;
-    bottom: 12px;
-    right: 20px;
+    bottom: 30px;
+    right: 24px;
+    text-align: right;
+  }
+  .mumbai-toggle {
+    background: none;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mumbai-toggle:hover { border-color: #666; color: #bbb; }
+
+  .mumbai-display {
+    display: none;
+    margin-top: 8px;
+  }
+  .mumbai-display.show { display: block; }
+  .mumbai-display .m-date {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .mumbai-display .m-time {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  /* ===== HINT BAR ===== */
+  .hint {
+    position: fixed;
+    top: 16px;
     color: #333;
     font-size: 13px;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    cursor: pointer;
-    padding: 4px 10px;
+    text-align: center;
+  }
+  .hint kbd {
+    background: #1a1a1a;
     border: 1px solid #333;
     border-radius: 4px;
-    background: transparent;
-    transition: all 0.3s ease;
-    display: none;
-  }
-
-  .toggle-time:hover {
-    color: #666;
-    border-color: #666;
-  }
-
-  .toggle-time.visible {
-    display: block;
+    padding: 2px 7px;
+    font-size: 12px;
+    color: #555;
   }
 </style>
 </head>
 <body>
 
-<div class="display" id="display">0:00</div>
-
-<div class="buttons">
-  <button class="btn start" id="startBtn" onclick="startTimer()">Start</button>
-  <button class="btn stop" id="stopBtn" onclick="stopTimer()" disabled>Stop</button>
-  <button class="btn reset" id="resetBtn" onclick="resetTimer()">Reset</button>
+<div class="hint">
+  <kbd>Space</kbd> Start/Stop &nbsp;|&nbsp; <kbd>Enter</kbd> Mark &nbsp;|&nbsp; <kbd>R</kbd> Reset &nbsp;|&nbsp; <kbd>D</kbd> Download PDF
 </div>
 
-<div class="time-bar" id="timeBar" onclick="toggleTime()"></div>
-<button class="toggle-time" id="toggleTimeBtn" onclick="toggleTime()">🕐 Show Time</button>
+<!-- TIMER -->
+<div class="timer" id="timer">00:0</div>
+
+<!-- BUTTONS -->
+<div class="btn-row">
+  <button class="btn green"  id="startBtn" onclick="startTimer()">start</button>
+  <button class="btn red"    id="stopBtn"  onclick="stopTimer()" disabled>stop</button>
+  <button class="btn orange" id="resetBtn" onclick="resetTimer()">reset</button>
+  <button class="btn blue"   id="pdfBtn"   onclick="downloadPDF()">📄 pdf</button>
+</div>
+
+<!-- QUESTION TAB -->
+<div class="question-box" id="questionBox">
+  <h3>📋 Question Mark</h3>
+  <div id="questionList">
+    <div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>
+  </div>
+</div>
+
+<!-- MUMBAI TIME -->
+<div class="mumbai-box">
+  <button class="mumbai-toggle" id="mumbaiToggle" onclick="toggleMumbai()">show Mumbai time</button>
+  <div class="mumbai-display" id="mumbaiDisplay">
+    <div class="m-date" id="mDate"></div>
+    <div class="m-time" id="mTime"></div>
+  </div>
+</div>
 
 <script>
+  const { jsPDF } = window.jspdf;
+
   let startTime = 0;
   let elapsed = 0;
   let interval = null;
   let running = false;
+  let questionCount = 0;
+  let timerStartedAt = null;   // real Mumbai Date when timer started
+  let timerEndedAt = null;     // real Mumbai Date when timer stopped (for PDF)
+  let questionData = [];       // { timerTime, mumbaiDate, mumbaiTime, alive }
 
-  const display = document.getElementById('display');
+  const timer    = document.getElementById('timer');
   const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
+  const stopBtn  = document.getElementById('stopBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const qList    = document.getElementById('questionList');
 
-  function formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const centiseconds = Math.floor((ms % 1000) / 10);
-
-    if (hours === 0) {
-      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  /* ---- FORMAT: HH:MM:SS or MM:SS ---- */
+  function fmt(ms) {
+    const s   = Math.floor(ms / 1000);
+    const h   = Math.floor(s / 3600);
+    const m   = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
   }
 
-  function updateDisplay() {
-    const now = Date.now();
-    const current = elapsed + (now - startTime);
-    display.textContent = formatTime(current);
+  function ordinal(n) {
+    if (n <= 3) return ['1st','2nd','3rd'][n-1];
+    return n + 'th';
+  }
+
+  /* ---- MUMBAI HELPERS ---- */
+  function getMumbaiDate() {
+    const now = new Date();
+    return now.toLocaleDateString('en-IN', {
+      timeZone:'Asia/Kolkata', weekday:'short', day:'2-digit', month:'short', year:'numeric'
+    });
+  }
+  function getMumbaiTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('en-IN', {
+      timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
+    });
+  }
+  function getMumbaiFullTime() {
+    return getMumbaiDate() + '  ' + getMumbaiTime();
+  }
+
+  /* ---- TIMER LOGIC ---- */
+  function tick() {
+    timer.textContent = fmt(elapsed + Date.now() - startTime);
   }
 
   function startTimer() {
     if (running) return;
     running = true;
     startTime = Date.now();
-    interval = setInterval(updateDisplay, 30);
+    if (!timerStartedAt) timerStartedAt = getMumbaiFullTime();
+    interval = setInterval(tick, 50);
+    timer.classList.remove('paused');
     startBtn.disabled = true;
-    stopBtn.disabled = false;
-    display.classList.remove('paused');
+    stopBtn.disabled  = false;
   }
 
   function stopTimer() {
@@ -220,73 +317,261 @@
     running = false;
     elapsed += Date.now() - startTime;
     clearInterval(interval);
-    interval = null;
+    timer.classList.add('paused');
+    timer.textContent = fmt(elapsed);
+    timerEndedAt = getMumbaiFullTime();
     startBtn.disabled = false;
-    stopBtn.disabled = true;
-    display.classList.add('paused');
-    display.textContent = formatTime(elapsed);
+    stopBtn.disabled  = true;
   }
 
   function resetTimer() {
-    running = false;
-    clearInterval(interval);
-    interval = null;
+    stopTimer();
     elapsed = 0;
-    startTime = 0;
-    display.textContent = '0:00';
-    display.classList.remove('paused');
+    timer.textContent = '00:0';
+    timer.classList.remove('paused');
     startBtn.disabled = false;
-    stopBtn.disabled = true;
+    stopBtn.disabled  = true;
+    timerStartedAt = null;
+    timerEndedAt = null;
+    questionCount = 0;
+    questionData = [];
+    qList.innerHTML = '<div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>';
   }
 
-  // Mumbai time
-  const timeBar = document.getElementById('timeBar');
-  const toggleTimeBtn = document.getElementById('toggleTimeBtn');
-  let timeVisible = true;
+  /* ---- QUESTION MARKER ---- */
+  function buildEntry(num, ord, timerStr, mumbaiStr) {
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    entry.dataset.status = 'alive';
 
-  function getMumbaiTime() {
-    const now = new Date();
-    return now.toLocaleTimeString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+    const numSpan  = document.createElement('span');
+    numSpan.className = 'num';
+    numSpan.textContent = num + ')';
+
+    const wrap = document.createElement('span');
+    wrap.className = 'wrap';
+
+    const qText = document.createElement('span');
+    qText.className = 'qtext';
+    qText.textContent = 'You did your ' + ord + ' question';
+    wrap.appendChild(qText);
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'time';
+    timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + mumbaiStr;
+    wrap.appendChild(document.createElement('br'));
+    wrap.appendChild(timeSpan);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.textContent = '🗑️';
+    delBtn.title = 'Delete this entry';
+    delBtn.onclick = function() { deleteQuestion(delBtn, entry); };
+
+    entry.appendChild(numSpan);
+    entry.appendChild(wrap);
+    entry.appendChild(delBtn);
+    return entry;
+  }
+
+  function markQuestion() {
+    questionCount++;
+    var em = document.getElementById('emptyMsg');
+    if (em) em.remove();
+
+    var currentTime = running ? elapsed + (Date.now() - startTime) : elapsed;
+    var timerStr = fmt(currentTime);
+    var mumbaiStr = getMumbaiFullTime();
+
+    questionData.push({ timerTime: timerStr, mumbaiTime: mumbaiStr, alive: true });
+
+    var entry = buildEntry(questionCount, ordinal(questionCount), timerStr, mumbaiStr);
+    qList.appendChild(entry);
+
+    var box = document.getElementById('questionBox');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* ---- DELETE ---- */
+  function deleteQuestion(btn, entry) {
+    if (entry.dataset.status === 'dead') return;
+    entry.dataset.status = 'dead';
+    entry.classList.add('dead');
+    btn.style.display = 'none';
+    renumberQuestions();
+  }
+
+  function renumberQuestions() {
+    var entries = qList.querySelectorAll('.entry');
+    var alive = 0;
+    var ai = 0; // index in questionData for alive items
+
+    entries.forEach(function(e) {
+      if (e.dataset.status === 'alive') {
+        alive++;
+        var numSpan = e.querySelector('.num');
+        var qText   = e.querySelector('.qtext');
+        var ord = ordinal(alive);
+        numSpan.textContent = alive + ')';
+        qText.textContent   = 'You did your ' + ord + ' question';
+      }
     });
+    questionCount = alive;
   }
 
-  function updateMumbaiTime() {
-    if (timeVisible) {
-      timeBar.textContent = `🕐 Mumbai: ${getMumbaiTime()}`;
+  /* ---- MUMBAI DISPLAY ---- */
+  var mumbaiVisible = false;
+  function toggleMumbai() {
+    mumbaiVisible = !mumbaiVisible;
+    var disp = document.getElementById('mumbaiDisplay');
+    var btn  = document.getElementById('mumbaiToggle');
+    if (mumbaiVisible) { disp.classList.add('show'); btn.textContent = 'hide Mumbai time'; }
+    else { disp.classList.remove('show'); btn.textContent = 'show Mumbai time'; }
+  }
+  function updateMumbai() {
+    document.getElementById('mDate').textContent = getMumbaiDate();
+    document.getElementById('mTime').textContent = getMumbaiTime();
+  }
+  setInterval(updateMumbai, 1000);
+  updateMumbai();
+
+  /* ---- PDF DOWNLOAD ---- */
+  var motivationalQuotes = [
+    "The expert in anything was once a beginner. Keep going! 🚀",
+    "Small progress is still progress. You're doing great! 💪",
+    "Consistency beats intensity. Keep showing up! 🔥",
+    "Every question solved is a step closer to mastery. 🎯",
+    "Don't stop when you're tired. Stop when you're done! 🏆",
+    "The only bad workout is the one that didn't happen. ✨",
+    "Believe you can and you're halfway there. 🌟",
+    "Success is the sum of small efforts repeated daily. 📈",
+    "You didn't come this far to only come this far. 💎",
+    "Hard work beats talent when talent doesn't work hard. 🔑"
+  ];
+
+  function downloadPDF() {
+    var aliveQuestions = questionData.filter(function(q) { return q.alive; });
+    if (aliveQuestions.length === 0) {
+      alert('No questions marked yet! Press Enter to mark some questions first.');
+      return;
     }
+
+    var doc = new jsPDF('p', 'mm', 'a4');
+    var pw = doc.internal.pageSize.getWidth();
+    var ph = doc.internal.pageSize.getHeight();
+    var margin = 15;
+    var usable = pw - margin * 2;
+    var y = margin;
+
+    /* ---- TITLE ---- */
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    var title = 'You did ' + aliveQuestions.length + ' questions today';
+    doc.text(title, pw / 2, y, { align: 'center' });
+    y += 4;
+    doc.setDrawColor(0, 150, 0);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y, pw - margin, y);
+    y += 8;
+
+    /* ---- START / END TIMES ---- */
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    var today = new Date().toLocaleDateString('en-IN', {
+      timeZone:'Asia/Kolkata', day:'2-digit', month:'long', year:'numeric'
+    });
+    var startInfo = timerStartedAt || getMumbaiFullTime();
+    var endInfo   = timerEndedAt   || getMumbaiFullTime();
+
+    doc.text('📅 Date: ' + today, margin, y); y += 6;
+    doc.text('▶ Started at: ' + startInfo, margin, y); y += 6;
+    doc.text('⏹ Ended at: ' + endInfo, margin, y); y += 8;
+
+    /* ---- TOTAL DURATION ---- */
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 100, 0);
+    doc.text('Total Time: ' + fmt(elapsed), margin, y);
+    y += 8;
+
+    /* ---- TABLE ---- */
+    var tableData = [];
+    var qNum = 0;
+    for (var i = 0; i < questionData.length; i++) {
+      if (questionData[i].alive) {
+        qNum++;
+        tableData.push([
+          qNum,
+          'Question ' + ordinal(qNum),
+          questionData[i].timerTime,
+          questionData[i].mumbaiTime
+        ]);
+      }
+    }
+
+    doc.autoTable({
+      startY: y,
+      head: [['#', 'Question', 'Timer Time', 'Mumbai Time']],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        font: 'helvetica'
+      },
+      headStyles: {
+        fillColor: [34, 34, 34],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 10
+      },
+      alternateRowStyles: {
+        fillColor: [245, 250, 245]
+      },
+      columnStyles: {
+        0: { cellWidth: 12, halign: 'center' },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 30, halign: 'center' },
+        3: { cellWidth: 45 }
+      },
+      margin: { left: margin, right: margin }
+    });
+
+    y = doc.lastAutoTable.finalY + 12;
+
+    /* ---- MOTIVATIONAL QUOTE ---- */
+    var quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(60, 60, 60);
+    doc.text(quote, pw / 2, y, { align: 'center' });
+    y += 6;
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pw - margin, y);
+    y += 8;
+
+    /* ---- WATERMARK ---- */
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(150, 150, 150);
+    doc.text('by Harsh', pw / 2, ph - 10, { align: 'center' });
+
+    /* ---- SAVE ---- */
+    var dateStr = today.replace(/,/g, '').replace(/\s/g, '_');
+    var fileName = aliveQuestions.length + ' questions solved at ' + dateStr + '.pdf';
+    doc.save(fileName);
   }
 
-  function toggleTime() {
-    timeVisible = !timeVisible;
-    if (timeVisible) {
-      timeBar.classList.remove('hidden');
-      toggleTimeBtn.classList.remove('visible');
-      updateMumbaiTime();
-    } else {
-      timeBar.classList.add('hidden');
-      toggleTimeBtn.classList.add('visible');
-    }
-  }
-
-  setInterval(updateMumbaiTime, 1000);
-  updateMumbaiTime();
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      if (running) stopTimer();
-      else startTimer();
-    } else if (e.code === 'KeyR') {
-      resetTimer();
-    }
+  /* ---- KEYBOARD ---- */
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space')  { e.preventDefault(); running ? stopTimer() : startTimer(); }
+    if (e.code === 'Enter')  { e.preventDefault(); markQuestion(); }
+    if (e.code === 'KeyR')   { e.preventDefault(); resetTimer(); }
+    if (e.code === 'KeyD')   { e.preventDefault(); downloadPDF(); }
   });
 </script>
-
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07db431cab7ff60',t:'MTc4MDgxNDgzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
