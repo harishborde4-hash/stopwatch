@@ -81,14 +81,9 @@
     .timer.paused { color: #ff4444; }
 
     /* ===== PORTRAIT LAYOUT (default) ===== */
-    .btn-row {
-      display: flex;
-      width: 100%;
-      padding: 0 16px;
-      gap: 16px;
-      flex: 1;
-      align-items: flex-start;
-      min-height: 200px;
+    .main {
+      flex-direction: column;
+      align-items: center;
     }
 
     .btn-left {
@@ -137,6 +132,15 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+    }
+
+    /* Portrait button row */
+    .portrait-btns {
+      display: flex;
+      width: 100%;
+      padding: 0 16px;
+      gap: 16px;
+      align-items: flex-start;
     }
     .btn-mark:active { background: rgba(156,39,176,0.18); transform: scale(0.98); }
     .btn-mark .m-icon { font-size: 42px; }
@@ -195,51 +199,53 @@
     /* ===== LANDSCAPE MODE (forced or auto) ===== */
     body.landscape .main {
       flex-direction: row;
-      align-items: stretch;
+      align-items: center;
+      justify-content: space-between;
       padding-top: 58px;
       padding-bottom: 60px;
+      padding-left: 12px;
+      padding-right: 12px;
       gap: 12px;
     }
 
     body.landscape .timer {
       flex: 1 1 auto;
-      font-size: 16vh;
+      font-size: 18vh;
       margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       order: 1;
-    }
-
-    body.landscape .btn-row {
-      display: flex;
-      flex-direction: column;
-      width: auto;
-      padding: 8px 4px;
-      gap: 10px;
-      align-items: stretch;
-      order: 0;
+      min-width: 0;
     }
 
     body.landscape .btn-left {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
+      order: 0;
+      flex-shrink: 0;
     }
 
     body.landscape .btn-s { 
-      width: 78px; 
-      height: 40px; 
+      width: 76px; 
+      height: 38px; 
       font-size: 11px; 
     }
 
     body.landscape .btn-mark {
       order: 2;
-      flex: 0 0 125px;
-      min-height: 125px;
-      height: 125px;
-      margin: auto 0;
-      font-size: 15px;
+      flex: 0 0 138px;
+      min-height: 175px;
+      height: 175px;
+      margin: 0;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Hide portrait wrapper in landscape */
+    body.landscape .portrait-btns {
+      display: contents;
     }
 
     /* Move PDF to bottom bar in landscape */
@@ -298,10 +304,10 @@
     <!-- TIMER -->
     <div class="timer" id="timer">00:00</div>
 
-    <!-- BUTTON ROW (Portrait: left buttons + mark | Landscape handled by body class) -->
-    <div class="btn-row">
+    <!-- Portrait: Left buttons + Mark button side by side -->
+    <div class="portrait-btns">
       <!-- LEFT BUTTONS -->
-      <div class="btn-left">
+      <div class="btn-left" id="btnLeft">
         <button class="btn-s green" id="startBtn" onclick="startTimer()">▶ Start</button>
         <button class="btn-s red" id="stopBtn" onclick="stopTimer()" disabled>⏸ Stop</button>
         <button class="btn-s orange" id="resetBtn" onclick="resetTimer()">↺ Reset</button>
@@ -309,7 +315,7 @@
       </div>
 
       <!-- MARK BUTTON -->
-      <button class="btn-mark" onclick="markQuestion()">
+      <button class="btn-mark" id="markBtn" onclick="markQuestion()">
         <span class="m-icon">✓</span>
         Mark
       </button>
@@ -623,5 +629,5 @@
       if (e.key.toLowerCase() === 'm') markQuestion();
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e6daced944478',t:'MTc4MDgyMjQyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e7d8fef22540b',t:'MTc4MDgyMzA3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
