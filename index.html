@@ -75,7 +75,7 @@
     min-height: 80px;
     max-height: 70vh;
     background: #111;
-    border: 2px solid #333;
+    border: 2px solid #444;
     border-radius: 12px;
     padding: 14px 16px;
     overflow-y: auto;
@@ -86,6 +86,21 @@
   }
   .question-box::-webkit-scrollbar { width: 5px; }
   .question-box::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+  /* Resize handle — make it big & visible */
+  .question-box::after {
+    content: '⠿ Resize';
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 11px;
+    color: #555;
+    pointer-events: none;
+    user-select: none;
+  }
+  .question-box:hover::after {
+    color: #888;
+  }
 
   .question-box h3 {
     color: #aaa;
@@ -157,14 +172,14 @@
     padding: 4px 0;
   }
 
-  /* ===== MUMBAI TIME (lower-right) ===== */
-  .mumbai-box {
+  /* ===== LOCAL TIME (lower-right) ===== */
+  .localtime-box {
     position: fixed;
     bottom: 30px;
     right: 24px;
     text-align: right;
   }
-  .mumbai-toggle {
+  .localtime-toggle {
     background: none;
     border: 2px solid #333;
     border-radius: 8px;
@@ -174,19 +189,19 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .mumbai-toggle:hover { border-color: #666; color: #bbb; }
+  .localtime-toggle:hover { border-color: #666; color: #bbb; }
 
-  .mumbai-display {
+  .localtime-display {
     display: none;
     margin-top: 8px;
   }
-  .mumbai-display.show { display: block; }
-  .mumbai-display .m-date {
+  .localtime-display.show { display: block; }
+  .localtime-display .l-date {
     color: #666;
     font-size: 14px;
     font-weight: 500;
   }
-  .mumbai-display .m-time {
+  .localtime-display .l-time {
     color: #fff;
     font-size: 26px;
     font-weight: 700;
@@ -237,12 +252,12 @@
   </div>
 </div>
 
-<!-- MUMBAI TIME -->
-<div class="mumbai-box">
-  <button class="mumbai-toggle" id="mumbaiToggle" onclick="toggleMumbai()">show Mumbai time</button>
-  <div class="mumbai-display" id="mumbaiDisplay">
-    <div class="m-date" id="mDate"></div>
-    <div class="m-time" id="mTime"></div>
+<!-- LOCAL TIME -->
+<div class="localtime-box">
+  <button class="localtime-toggle" id="localtimeToggle" onclick="toggleLocalTime()">show Local time</button>
+  <div class="localtime-display" id="localtimeDisplay">
+    <div class="l-date" id="lDate"></div>
+    <div class="l-time" id="lTime"></div>
   </div>
 </div>
 
@@ -254,9 +269,9 @@
   let interval = null;
   let running = false;
   let questionCount = 0;
-  let timerStartedAt = null;   // real Mumbai Date when timer started
-  let timerEndedAt = null;     // real Mumbai Date when timer stopped (for PDF)
-  let questionData = [];       // { timerTime, mumbaiDate, mumbaiTime, alive }
+  let timerStartedAt = null;
+  let timerEndedAt = null;
+  let questionData = [];
 
   const timer    = document.getElementById('timer');
   const startBtn = document.getElementById('startBtn');
@@ -279,21 +294,21 @@
     return n + 'th';
   }
 
-  /* ---- MUMBAI HELPERS ---- */
-  function getMumbaiDate() {
+  /* ---- LOCAL TIME HELPERS ---- */
+  function getLocalDate() {
     const now = new Date();
     return now.toLocaleDateString('en-IN', {
       timeZone:'Asia/Kolkata', weekday:'short', day:'2-digit', month:'short', year:'numeric'
     });
   }
-  function getMumbaiTime() {
+  function getLocalTime() {
     const now = new Date();
     return now.toLocaleTimeString('en-IN', {
       timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
     });
   }
-  function getMumbaiFullTime() {
-    return getMumbaiDate() + '  ' + getMumbaiTime();
+  function getLocalFullTime() {
+    return getLocalDate() + '  ' + getLocalTime();
   }
 
   /* ---- TIMER LOGIC ---- */
@@ -305,7 +320,7 @@
     if (running) return;
     running = true;
     startTime = Date.now();
-    if (!timerStartedAt) timerStartedAt = getMumbaiFullTime();
+    if (!timerStartedAt) timerStartedAt = getLocalFullTime();
     interval = setInterval(tick, 50);
     timer.classList.remove('paused');
     startBtn.disabled = true;
@@ -319,7 +334,7 @@
     clearInterval(interval);
     timer.classList.add('paused');
     timer.textContent = fmt(elapsed);
-    timerEndedAt = getMumbaiFullTime();
+    timerEndedAt = getLocalFullTime();
     startBtn.disabled = false;
     stopBtn.disabled  = true;
   }
@@ -339,7 +354,7 @@
   }
 
   /* ---- QUESTION MARKER ---- */
-  function buildEntry(num, ord, timerStr, mumbaiStr) {
+  function buildEntry(num, ord, timerStr, localStr) {
     const entry = document.createElement('div');
     entry.className = 'entry';
     entry.dataset.status = 'alive';
@@ -358,7 +373,7 @@
 
     const timeSpan = document.createElement('span');
     timeSpan.className = 'time';
-    timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + mumbaiStr;
+    timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + localStr;
     wrap.appendChild(document.createElement('br'));
     wrap.appendChild(timeSpan);
 
@@ -381,11 +396,11 @@
 
     var currentTime = running ? elapsed + (Date.now() - startTime) : elapsed;
     var timerStr = fmt(currentTime);
-    var mumbaiStr = getMumbaiFullTime();
+    var localStr = getLocalFullTime();
 
-    questionData.push({ timerTime: timerStr, mumbaiTime: mumbaiStr, alive: true });
+    questionData.push({ timerTime: timerStr, localTime: localStr, alive: true });
 
-    var entry = buildEntry(questionCount, ordinal(questionCount), timerStr, mumbaiStr);
+    var entry = buildEntry(questionCount, ordinal(questionCount), timerStr, localStr);
     qList.appendChild(entry);
 
     var box = document.getElementById('questionBox');
@@ -404,7 +419,6 @@
   function renumberQuestions() {
     var entries = qList.querySelectorAll('.entry');
     var alive = 0;
-    var ai = 0; // index in questionData for alive items
 
     entries.forEach(function(e) {
       if (e.dataset.status === 'alive') {
@@ -419,21 +433,21 @@
     questionCount = alive;
   }
 
-  /* ---- MUMBAI DISPLAY ---- */
-  var mumbaiVisible = false;
-  function toggleMumbai() {
-    mumbaiVisible = !mumbaiVisible;
-    var disp = document.getElementById('mumbaiDisplay');
-    var btn  = document.getElementById('mumbaiToggle');
-    if (mumbaiVisible) { disp.classList.add('show'); btn.textContent = 'hide Mumbai time'; }
-    else { disp.classList.remove('show'); btn.textContent = 'show Mumbai time'; }
+  /* ---- LOCAL TIME DISPLAY ---- */
+  var localtimeVisible = false;
+  function toggleLocalTime() {
+    localtimeVisible = !localtimeVisible;
+    var disp = document.getElementById('localtimeDisplay');
+    var btn  = document.getElementById('localtimeToggle');
+    if (localtimeVisible) { disp.classList.add('show'); btn.textContent = 'hide Local time'; }
+    else { disp.classList.remove('show'); btn.textContent = 'show Local time'; }
   }
-  function updateMumbai() {
-    document.getElementById('mDate').textContent = getMumbaiDate();
-    document.getElementById('mTime').textContent = getMumbaiTime();
+  function updateLocalTime() {
+    document.getElementById('lDate').textContent = getLocalDate();
+    document.getElementById('lTime').textContent = getLocalTime();
   }
-  setInterval(updateMumbai, 1000);
-  updateMumbai();
+  setInterval(updateLocalTime, 1000);
+  updateLocalTime();
 
   /* ---- PDF DOWNLOAD ---- */
   var motivationalQuotes = [
@@ -460,7 +474,6 @@
     var pw = doc.internal.pageSize.getWidth();
     var ph = doc.internal.pageSize.getHeight();
     var margin = 15;
-    var usable = pw - margin * 2;
     var y = margin;
 
     /* ---- TITLE ---- */
@@ -482,8 +495,8 @@
     var today = new Date().toLocaleDateString('en-IN', {
       timeZone:'Asia/Kolkata', day:'2-digit', month:'long', year:'numeric'
     });
-    var startInfo = timerStartedAt || getMumbaiFullTime();
-    var endInfo   = timerEndedAt   || getMumbaiFullTime();
+    var startInfo = timerStartedAt || getLocalFullTime();
+    var endInfo   = timerEndedAt   || getLocalFullTime();
 
     doc.text('📅 Date: ' + today, margin, y); y += 6;
     doc.text('▶ Started at: ' + startInfo, margin, y); y += 6;
@@ -506,14 +519,14 @@
           qNum,
           'Question ' + ordinal(qNum),
           questionData[i].timerTime,
-          questionData[i].mumbaiTime
+          questionData[i].localTime
         ]);
       }
     }
 
     doc.autoTable({
       startY: y,
-      head: [['#', 'Question', 'Timer Time', 'Mumbai Time']],
+      head: [['#', 'Question', 'Timer Time', 'Local Time']],
       body: tableData,
       theme: 'grid',
       styles: {
@@ -560,8 +573,8 @@
     doc.text('by Harsh', pw / 2, ph - 10, { align: 'center' });
 
     /* ---- SAVE ---- */
-    var dateStr = today.replace(/,/g, '').replace(/\s/g, '_');
-    var fileName = aliveQuestions.length + ' questions solved at ' + dateStr + '.pdf';
+    var cleanDate = today.replace(/,/g, '').replace(/\s+/g, '_');
+    var fileName = aliveQuestions.length + ' question did on ' + cleanDate + '.pdf';
     doc.save(fileName);
   }
 
@@ -573,5 +586,5 @@
     if (e.code === 'KeyD')   { e.preventDefault(); downloadPDF(); }
   });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07db431cab7ff60',t:'MTc4MDgxNDgzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07dd10b6fe93e40',t:'MTc4MDgxNjAxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
