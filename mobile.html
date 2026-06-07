@@ -196,44 +196,70 @@
     body.landscape .main {
       flex-direction: row;
       align-items: stretch;
-      padding-top: 60px;
-      padding-bottom: 65px;
-      gap: 14px;
+      padding-top: 58px;
+      padding-bottom: 60px;
+      gap: 12px;
     }
+
     body.landscape .timer {
       flex: 1 1 auto;
-      font-size: 15vh;
+      font-size: 16vh;
       margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       order: 1;
     }
+
     body.landscape .btn-row {
+      display: flex;
       flex-direction: column;
       width: auto;
-      padding: 0;
+      padding: 8px 4px;
       gap: 10px;
       align-items: stretch;
-    }
-    body.landscape .btn-left {
       order: 0;
-      padding: 8px;
+    }
+
+    body.landscape .btn-left {
+      display: flex;
+      flex-direction: column;
       gap: 8px;
     }
-    body.landscape .btn-s { width: 80px; height: 42px; font-size: 11px; }
+
+    body.landscape .btn-s { 
+      width: 78px; 
+      height: 40px; 
+      font-size: 11px; 
+    }
+
     body.landscape .btn-mark {
       order: 2;
-      flex: 0 0 135px;
-      min-height: 135px;
-      height: 135px;
+      flex: 0 0 125px;
+      min-height: 125px;
+      height: 125px;
       margin: auto 0;
-      font-size: 16px;
+      font-size: 15px;
     }
+
+    /* Move PDF to bottom bar in landscape */
+    body.landscape #pdfBtn {
+      display: none;
+    }
+
+    body.landscape #pdfBtnLandscape {
+      display: block !important;
+    }
+
     body.landscape .bottom-bar {
       gap: 10px;
+      padding: 8px 14px;
     }
-    body.landscape .bottom-bar .q-section { flex: 1; }
+
+    body.landscape .bottom-bar .q-section { 
+      flex: 1; 
+    }
+
     body.landscape .pdf-btn-l {
       background: rgba(33,150,243,0.1);
       border: 2px solid #2196F3;
@@ -262,7 +288,7 @@
       <div class="top-time" id="topTime"></div>
       <div class="top-date" id="topDate"></div>
     </div>
-    <button class="rotator-btn" id="rotatorBtn" onclick="toggleRotation()">⟳ Rotate</button>
+    <button class="rotator-btn" id="rotatorBtn" onclick="toggleRotation()">⟳ Landscape</button>
   </div>
 
   <a href="index.html" class="home-link">← Home</a>
@@ -296,6 +322,9 @@
       <span class="q-label">📋 Questions <span class="q-count" id="qCount"></span></span>
     </div>
     <button class="q-toggle" id="qToggle" onclick="toggleQPanel()">List ▼</button>
+
+    <!-- Landscape only PDF button -->
+    <button class="pdf-btn-l" id="pdfBtnLandscape" onclick="downloadPDF()" style="display: none;">📄 PDF</button>
   </div>
 
   <!-- QUESTION PANEL -->
@@ -492,15 +521,24 @@
       qCount.textContent = alive > 0 ? '(' + alive + ')' : '';
     }
 
+    function updateRotatorButton() {
+      if (document.body.classList.contains('landscape')) {
+        rotatorBtn.innerHTML = '⟳ Portrait';
+      } else {
+        rotatorBtn.innerHTML = '⟳ Landscape';
+      }
+    }
+
     function toggleRotation() {
       isForcedLandscape = !isForcedLandscape;
+
       if (isForcedLandscape) {
         document.body.classList.add('landscape');
-        rotatorBtn.textContent = '⟳ Portrait';
       } else {
         document.body.classList.remove('landscape');
-        rotatorBtn.textContent = '⟳ Rotate';
       }
+
+      updateRotatorButton();
     }
 
     // Auto detect orientation (optional)
@@ -512,6 +550,7 @@
           document.body.classList.remove('landscape');
         }
       }
+      updateRotatorButton();
     }
     window.addEventListener('resize', checkOrientation);
     checkOrientation();
@@ -584,5 +623,5 @@
       if (e.key.toLowerCase() === 'm') markQuestion();
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e66e5ed584478',t:'MTc4MDgyMjE1MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e6daced944478',t:'MTc4MDgyMjQyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
