@@ -1,290 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giant Stopwatch</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
-        body {
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            user-select: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giant Stopwatch</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-        /* ─── NEW LOGO STYLE ─── */
-        .logo-container {
-            position: fixed;
-            top: 40px; /* Space from the top of the screen */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-        .site-logo {
-            width: auto;
-            height: 60px; /* Adjust this number to make the logo bigger or smaller */
-            object-fit: contain;
-            opacity: 0.8; /* Subtle transparency to match the dark theme */
-            transition: opacity 0.3s ease;
-        }
-        .site-logo:hover {
-            opacity: 1; /* Brightens when hovered */
-        }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
 
-        .display {
-            color: #fff;
-            font-size: 25vw;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-            transition: color 0.15s ease;
-        }
-        .display.paused {
-            color: #ff4444;
-        }
-        .buttons {
-            position: fixed;
-            bottom: 40px;
-            display: flex;
-            gap: 20px;
-            opacity: 0.25;
-            transition: opacity 0.3s ease;
-        }
-        body:hover .buttons {
-            opacity: 1;
-        }
-        .btn {
-            padding: 16px 48px;
-            font-size: 22px;
-            font-weight: 600;
-            border: 3px solid #555;
-            border-radius: 50px;
-            background: transparent;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            min-width: 160px;
-        }
-        .btn:hover {
-            background: #222;
-            border-color: #888;
-        }
-        .btn:active {
-            transform: scale(0.96);
-        }
-        .btn.start {
-            border-color: #4CAF50;
-            color: #4CAF50;
-        }
-        .btn.start:hover {
-            background: rgba(76, 175, 80, 0.15);
-        }
-        .btn.stop {
-            border-color: #f44336;
-            color: #f44336;
-        }
-        .btn.stop:hover {
-            background: rgba(244, 67, 54, 0.15);
-        }
-        .btn.reset {
-            border-color: #ff9800;
-            color: #ff9800;
-        }
-        .btn.reset:hover {
-            background: rgba(255, 152, 0, 0.15);
-        }
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: default;
-        }
-        .btn:disabled:hover {
-            background: transparent;
-        }
-        .time-bar {
-            position: fixed;
-            bottom: 12px;
-            right: 20px;
-            color: #555;
-            font-size: 14px;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            font-variant-numeric: tabular-nums;
-            transition: opacity 0.3s ease;
-            cursor: pointer;
-        }
-        .time-bar:hover {
-            color: #888;
-        }
-        .time-bar.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .toggle-time {
-            position: fixed;
-            bottom: 12px;
-            right: 20px;
-            color: #333;
-            font-size: 13px;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            cursor: pointer;
-            padding: 4px 10px;
-            border: 1px solid #333;
-            border-radius: 4px;
-            background: transparent;
-            transition: all 0.3s ease;
-            display: none;
-        }
-        .toggle-time:hover {
-            color: #666;
-            border-color: #666;
-        }
-        .toggle-time.visible {
-            display: block;
-        }
-    </style>
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    user-select: none;
+  }
+
+  .display {
+    color: #fff;
+    font-size: 25vw;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.15s ease;
+  }
+
+  .display.paused {
+    color: #ff4444;
+  }
+
+  .buttons {
+    position: fixed;
+    bottom: 40px;
+    display: flex;
+    gap: 20px;
+    opacity: 0.25;
+    transition: opacity 0.3s ease;
+  }
+
+  body:hover .buttons {
+    opacity: 1;
+  }
+
+  .btn {
+    padding: 16px 48px;
+    font-size: 22px;
+    font-weight: 600;
+    border: 3px solid #555;
+    border-radius: 50px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 160px;
+  }
+
+  .btn:hover {
+    background: #222;
+    border-color: #888;
+  }
+
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn.start {
+    border-color: #4CAF50;
+    color: #4CAF50;
+  }
+
+  .btn.start:hover {
+    background: rgba(76, 175, 80, 0.15);
+  }
+
+  .btn.stop {
+    border-color: #f44336;
+    color: #f44336;
+  }
+
+  .btn.stop:hover {
+    background: rgba(244, 67, 54, 0.15);
+  }
+
+  .btn.reset {
+    border-color: #ff9800;
+    color: #ff9800;
+  }
+
+  .btn.reset:hover {
+    background: rgba(255, 152, 0, 0.15);
+  }
+
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .btn:disabled:hover {
+    background: transparent;
+  }
+
+  .time-bar {
+    position: fixed;
+    bottom: 12px;
+    right: 20px;
+    color: #555;
+    font-size: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+  }
+
+  .time-bar:hover {
+    color: #888;
+  }
+
+  .time-bar.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .toggle-time {
+    position: fixed;
+    bottom: 12px;
+    right: 20px;
+    color: #333;
+    font-size: 13px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer;
+    padding: 4px 10px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: transparent;
+    transition: all 0.3s ease;
+    display: none;
+  }
+
+  .toggle-time:hover {
+    color: #666;
+    border-color: #666;
+  }
+
+  .toggle-time.visible {
+    display: block;
+  }
+</style>
 </head>
 <body>
 
-    <!-- ─── LOGO ADDED HERE ─── -->
-    <div class="logo-container">
-        <img src="time.png" alt="Stopwatch Logo" class="site-logo">
-    </div>
+<div class="display" id="display">0:00</div>
 
-    <div class="display" id="display">0:00</div>
-    
-    <div class="buttons">
-        <button class="btn start" id="startBtn" onclick="startTimer()">Start</button>
-        <button class="btn stop" id="stopBtn" onclick="stopTimer()" disabled>Stop</button>
-        <button class="btn reset" id="resetBtn" onclick="resetTimer()">Reset</button>
-    </div>
-    
-    <div class="time-bar" id="timeBar" onclick="toggleTime()"></div>
-    <button class="toggle-time" id="toggleTimeBtn" onclick="toggleTime()">🕐 Show Time</button>
+<div class="buttons">
+  <button class="btn start" id="startBtn" onclick="startTimer()">Start</button>
+  <button class="btn stop" id="stopBtn" onclick="stopTimer()" disabled>Stop</button>
+  <button class="btn reset" id="resetBtn" onclick="resetTimer()">Reset</button>
+</div>
 
-    <script>
-        let startTime = 0;
-        let elapsed = 0;
-        let interval = null;
-        let running = false;
-        const display = document.getElementById('display');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const resetBtn = document.getElementById('resetBtn');
+<div class="time-bar" id="timeBar" onclick="toggleTime()"></div>
+<button class="toggle-time" id="toggleTimeBtn" onclick="toggleTime()">🕐 Show Time</button>
 
-        function formatTime(ms) {
-            const totalSeconds = Math.floor(ms / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            if (hours === 0) {
-                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-            return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
+<script>
+  let startTime = 0;
+  let elapsed = 0;
+  let interval = null;
+  let running = false;
 
-        function updateDisplay() {
-            const now = Date.now();
-            const current = elapsed + (now - startTime);
-            display.textContent = formatTime(current);
-        }
+  const display = document.getElementById('display');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const resetBtn = document.getElementById('resetBtn');
 
-        function startTimer() {
-            if (running) return;
-            running = true;
-            startTime = Date.now();
-            interval = setInterval(updateDisplay, 30);
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            display.classList.remove('paused');
-        }
+  function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const centiseconds = Math.floor((ms % 1000) / 10);
 
-        function stopTimer() {
-            if (!running) return;
-            running = false;
-            elapsed += Date.now() - startTime;
-            clearInterval(interval);
-            interval = null;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            display.classList.add('paused');
-            display.textContent = formatTime(elapsed);
-        }
+    if (hours === 0) {
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
 
-        function resetTimer() {
-            running = false;
-            clearInterval(interval);
-            interval = null;
-            elapsed = 0;
-            startTime = 0;
-            display.textContent = '0:00';
-            display.classList.remove('paused');
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-        }
+  function updateDisplay() {
+    const now = Date.now();
+    const current = elapsed + (now - startTime);
+    display.textContent = formatTime(current);
+  }
 
-        // Mumbai time
-        const timeBar = document.getElementById('timeBar');
-        const toggleTimeBtn = document.getElementById('toggleTimeBtn');
-        let timeVisible = true;
+  function startTimer() {
+    if (running) return;
+    running = true;
+    startTime = Date.now();
+    interval = setInterval(updateDisplay, 30);
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    display.classList.remove('paused');
+  }
 
-        function getMumbaiTime() {
-            const now = new Date();
-            return now.toLocaleTimeString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-        }
+  function stopTimer() {
+    if (!running) return;
+    running = false;
+    elapsed += Date.now() - startTime;
+    clearInterval(interval);
+    interval = null;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    display.classList.add('paused');
+    display.textContent = formatTime(elapsed);
+  }
 
-        function updateMumbaiTime() {
-            if (timeVisible) {
-                timeBar.textContent = `🕐 Mumbai: ${getMumbaiTime()}`;
-            }
-        }
+  function resetTimer() {
+    running = false;
+    clearInterval(interval);
+    interval = null;
+    elapsed = 0;
+    startTime = 0;
+    display.textContent = '0:00';
+    display.classList.remove('paused');
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
 
-        function toggleTime() {
-            timeVisible = !timeVisible;
-            if (timeVisible) {
-                timeBar.classList.remove('hidden');
-                toggleTimeBtn.classList.remove('visible');
-                updateMumbaiTime();
-            } else {
-                timeBar.classList.add('hidden');
-                toggleTimeBtn.classList.add('visible');
-            }
-        }
+  // Mumbai time
+  const timeBar = document.getElementById('timeBar');
+  const toggleTimeBtn = document.getElementById('toggleTimeBtn');
+  let timeVisible = true;
 
-        setInterval(updateMumbaiTime, 1000);
-        updateMumbaiTime();
+  function getMumbaiTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  }
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                if (running) stopTimer();
-                else startTimer();
-            } else if (e.code === 'KeyR') {
-                resetTimer();
-            }
-        });
-    </script>
+  function updateMumbaiTime() {
+    if (timeVisible) {
+      timeBar.textContent = `🕐 Mumbai: ${getMumbaiTime()}`;
+    }
+  }
+
+  function toggleTime() {
+    timeVisible = !timeVisible;
+    if (timeVisible) {
+      timeBar.classList.remove('hidden');
+      toggleTimeBtn.classList.remove('visible');
+      updateMumbaiTime();
+    } else {
+      timeBar.classList.add('hidden');
+      toggleTimeBtn.classList.add('visible');
+    }
+  }
+
+  setInterval(updateMumbaiTime, 1000);
+  updateMumbaiTime();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (running) stopTimer();
+      else startTimer();
+    } else if (e.code === 'KeyR') {
+      resetTimer();
+    }
+  });
+</script>
+
 </body>
 </html>
