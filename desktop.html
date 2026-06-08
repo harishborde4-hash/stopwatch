@@ -1,409 +1,671 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stopwatch — Desktop</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
-<style>
-  /* =========================================================
-     DESKTOP BUILD — Edit only this file for PC changes
-     ========================================================= */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; width: 100%; overflow: hidden; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stopwatch — Desktop</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body {
+      background: #000;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
 
-  body {
-    background: #000;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
+    .back-link {
+      position: fixed;
+      top: 14px; left: 20px;
+      color: #444;
+      font-size: 14px;
+      text-decoration: none;
+      z-index: 70;
+      padding: 6px 14px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .back-link:hover { background: #1a1a1a; color: #aaa; border-color: #555; }
 
-  /* BACK LINK */
-  .back-link {
-    position: fixed;
-    top: 14px; left: 20px;
-    color: #444;
-    font-size: 14px;
-    text-decoration: none;
-    z-index: 70;
-    padding: 6px 14px;
-    border: 1px solid #333;
-    border-radius: 8px;
-    transition: all 0.15s;
-  }
-  .back-link:hover { background: #1a1a1a; color: #aaa; border-color: #555; }
+    .hint {
+      position: fixed;
+      top: 16px;
+      color: #333;
+      font-size: 13px;
+      text-align: center;
+    }
+    .hint kbd {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 12px;
+      color: #555;
+    }
 
-  /* HINT BAR */
-  .hint {
-    position: fixed;
-    top: 16px;
-    color: #333;
-    font-size: 13px;
-    text-align: center;
-  }
-  .hint kbd {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 12px;
-    color: #555;
-  }
+    /* TOPIC BAR - Top Right */
+    .topic-bar {
+      position: fixed;
+      top: 14px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 80;
+    }
+    .topic-bar input {
+      background: #111;
+      border: 1.5px solid #444;
+      border-radius: 8px;
+      padding: 7px 12px;
+      color: #ddd;
+      font-size: 14px;
+      width: 220px;
+      outline: none;
+    }
+    .topic-bar input:focus {
+      border-color: #666;
+    }
+    .topic-bar button {
+      background: #1a1a1a;
+      border: 1.5px solid #444;
+      border-radius: 8px;
+      padding: 7px 14px;
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .topic-bar button:hover {
+      background: #333;
+      border-color: #666;
+    }
 
-  /* TIMER */
-  .timer {
-    color: #fff;
-    font-size: 28vw;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    line-height: 1;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    transition: color 0.2s;
-  }
-  .timer.paused { color: #ff4444; }
+    .current-topics {
+      position: fixed;
+      top: 52px;
+      right: 20px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #9C27B0;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      max-width: 260px;
+      flex-wrap: wrap;
+    }
+    .current-topics.show { display: flex; }
+    .current-topics .topic-tag {
+      background: #2a2a2a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .current-topics .topic-tag button {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .current-topics .topic-tag button:hover {
+      color: #fff;
+    }
+    .current-topics button {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 2px;
+    }
 
-  /* BUTTONS */
-  .btn-row {
-    display: flex;
-    gap: 36px;
-    margin-top: 18px;
-  }
-  .btn {
-    background: none;
-    border: 2px solid #555;
-    border-radius: 10px;
-    padding: 10px 38px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #ccc;
-    cursor: pointer;
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
-    transition: all 0.15s;
-  }
-  .btn:hover { background: #1a1a1a; border-color: #888; color: #fff; }
-  .btn:active { transform: scale(0.96); }
-  .btn:disabled { opacity: 0.3; cursor: default; }
-  .btn:disabled:hover { background: none; border-color: #555; color: #ccc; }
-  .btn.green  { border-color: #4CAF50; color: #4CAF50; }
-  .btn.green:hover  { background: rgba(76,175,80,0.12); }
-  .btn.red    { border-color: #f44336; color: #f44336; }
-  .btn.red:hover    { background: rgba(244,67,54,0.12); }
-  .btn.orange { border-color: #ff9800; color: #ff9800; }
-  .btn.orange:hover { background: rgba(255,152,0,0.12); }
-  .btn.blue   { border-color: #2196F3; color: #2196F3; }
-  .btn.blue:hover { background: rgba(33,150,243,0.12); }
-  .btn.mark   { border-color: #9C27B0; color: #9C27B0; }
-  .btn.mark:hover { background: rgba(156,39,176,0.12); }
+    .timer {
+      color: #fff;
+      font-size: 28vw;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.2s;
+    }
+    .timer.paused { color: #ff4444; }
 
-  /* QUESTION BOX (bottom-left, resizable) */
-  .question-box {
-    position: fixed;
-    bottom: 30px;
-    left: 24px;
-    width: 310px;
-    min-width: 200px;
-    min-height: 80px;
-    max-height: 60vh;
-    background: #111;
-    border: 2px solid #444;
-    border-radius: 12px;
-    padding: 14px 16px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    resize: both;
-    scrollbar-width: thin;
-    scrollbar-color: #444 transparent;
-  }
-  .question-box::-webkit-scrollbar { width: 5px; }
-  .question-box::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-  .question-box::after {
-    content: '⠿ Resize';
-    position: absolute;
-    bottom: 2px; right: 4px;
-    font-size: 11px; color: #555;
-    pointer-events: none; user-select: none;
-  }
-  .question-box:hover::after { color: #888; }
+    .btn-row {
+      display: flex;
+      gap: 36px;
+      margin-top: 18px;
+    }
 
-  .question-box h3 {
-    color: #aaa; font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-bottom: 10px; border-bottom: 1px solid #2a2a2a; padding-bottom: 8px;
-  }
-  .question-box .q-top {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px; border-bottom: 1px solid #2a2a2a; padding-bottom: 8px;
-  }
-  .question-box .q-top h3 { margin-bottom: 0; border: none; padding: 0; }
-  .question-box .q-count { color: #4CAF50; font-weight: 700; font-size: 13px; }
+    .btn {
+      background: none;
+      border: 2px solid #555;
+      border-radius: 10px;
+      padding: 10px 38px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #ccc;
+      cursor: pointer;
+      text-transform: lowercase;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: #1a1a1a; border-color: #888; color: #fff; }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.3; cursor: default; }
+    .btn:disabled:hover { background: none; border-color: #555; color: #ccc; }
 
-  .entry {
-    display: flex; align-items: flex-start; padding: 6px 4px;
-    border-bottom: 1px solid #1a1a1a; line-height: 1.4; gap: 6px;
-  }
-  .entry .num { color: #4CAF50; font-weight: 700; font-size: 15px; min-width: 28px; flex-shrink: 0; }
-  .entry .wrap { flex: 1; }
-  .entry .qtext { color: #ddd; font-size: 14px; }
-  .entry .time { color: #555; font-size: 11px; display: block; margin-top: 2px; }
+    .btn.green  { border-color: #4CAF50; color: #4CAF50; }
+    .btn.green:hover  { background: rgba(76,175,80,0.12); }
+    .btn.red    { border-color: #f44336; color: #f44336; }
+    .btn.red:hover    { background: rgba(244,67,54,0.12); }
+    .btn.orange { border-color: #ff9800; color: #ff9800; }
+    .btn.orange:hover { background: rgba(255,152,0,0.12); }
+    .btn.blue   { border-color: #2196F3; color: #2196F3; }
+    .btn.blue:hover { background: rgba(33,150,243,0.12); }
+    .btn.mark   { border-color: #9C27B0; color: #9C27B0; }
+    .btn.mark:hover { background: rgba(156,39,176,0.12); }
 
-  .del-btn {
-    background: none; border: none; cursor: pointer; font-size: 16px;
-    opacity: 0.35; flex-shrink: 0; padding: 0 2px; transition: opacity 0.15s;
-  }
-  .del-btn:hover { opacity: 1; }
+    .question-box {
+      position: fixed;
+      bottom: 30px;
+      left: 24px;
+      width: 310px;
+      min-width: 200px;
+      min-height: 80px;
+      max-height: 60vh;
+      background: #111;
+      border: 2px solid #444;
+      border-radius: 12px;
+      padding: 14px 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      resize: both;
+      scrollbar-width: thin;
+      scrollbar-color: #444 transparent;
+    }
+    .question-box::-webkit-scrollbar { width: 5px; }
+    .question-box::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+    .question-box::after {
+      content: '⠿ Resize';
+      position: absolute;
+      bottom: 2px; right: 4px;
+      font-size: 11px; color: #555;
+      pointer-events: none; user-select: none;
+    }
+    .question-box:hover::after { color: #888; }
 
-  .entry.dead { opacity: 0.45; background: #0a0a0a; border-radius: 6px; }
-  .entry.dead .num { color: #777; }
-  .entry.dead .qtext { color: #999; text-decoration: line-through; text-decoration-color: #444; }
-  .entry.dead .time { color: #777; }
+    .question-box h3 {
+      color: #aaa; font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 10px; border-bottom: 1px solid #2a2a2a; padding-bottom: 8px;
+    }
+    .question-box .q-top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px; border-bottom: 1px solid #2a2a2a; padding-bottom: 8px;
+    }
+    .question-box .q-top h3 { margin-bottom: 0; border: none; padding: 0; }
+    .question-box .q-count { color: #4CAF50; font-weight: 700; font-size: 13px; }
 
-  .empty-msg { color: #444; font-size: 13px; font-style: italic; padding: 4px 0; }
+    .entry {
+      display: flex; align-items: flex-start; padding: 6px 4px;
+      border-bottom: 1px solid #1a1a1a; line-height: 1.4; gap: 6px;
+    }
+    .entry .num { color: #4CAF50; font-weight: 700; font-size: 15px; min-width: 28px; flex-shrink: 0; }
+    .entry .wrap { flex: 1; }
+    .entry .qtext { color: #ddd; font-size: 14px; }
+    .entry .time { color: #555; font-size: 11px; display: block; margin-top: 2px; }
+    .del-btn {
+      background: none; border: none; cursor: pointer; font-size: 16px;
+      opacity: 0.35; flex-shrink: 0; padding: 0 2px; transition: opacity 0.15s;
+    }
+    .del-btn:hover { opacity: 1; }
+    .entry.dead { opacity: 0.45; background: #0a0a0a; border-radius: 6px; }
+    .entry.dead .num { color: #777; }
+    .entry.dead .qtext { color: #999; text-decoration: line-through; text-decoration-color: #444; }
+    .entry.dead .time { color: #777; }
+    .empty-msg { color: #444; font-size: 13px; font-style: italic; padding: 4px 0; }
 
-  /* LOCAL TIME (bottom-right) */
-  .localtime-box {
-    position: fixed;
-    bottom: 30px; right: 24px;
-    text-align: right;
-  }
-  .localtime-toggle {
-    background: none; border: 2px solid #333; border-radius: 8px;
-    padding: 8px 16px; color: #777; font-size: 14px; cursor: pointer; transition: all 0.15s;
-  }
-  .localtime-toggle:hover { border-color: #666; color: #bbb; }
-  .localtime-display { display: none; margin-top: 8px; }
-  .localtime-display.show { display: block; }
-  .localtime-display .l-date { color: #666; font-size: 14px; font-weight: 500; }
-  .localtime-display .l-time {
-    color: #fff; font-size: 26px; font-weight: 700;
-    font-variant-numeric: tabular-nums; margin-top: 2px;
-  }
-</style>
+    .localtime-box {
+      position: fixed;
+      bottom: 30px; right: 24px;
+      text-align: right;
+    }
+    .localtime-toggle {
+      background: none; border: 2px solid #333; border-radius: 8px;
+      padding: 8px 16px; color: #777; font-size: 14px; cursor: pointer; transition: all 0.15s;
+    }
+    .localtime-toggle:hover { border-color: #666; color: #bbb; }
+    .localtime-display { display: none; margin-top: 8px; }
+    .localtime-display.show { display: block; }
+    .localtime-display .l-date { color: #666; font-size: 14px; font-weight: 500; }
+    .localtime-display .l-time {
+      color: #fff; font-size: 26px; font-weight: 700;
+      font-variant-numeric: tabular-nums; margin-top: 2px;
+    }
+  </style>
 </head>
 <body>
+  <a href="index.html" class="back-link">← Home</a>
 
-<a href="index.html" class="back-link">← Home</a>
-
-<div class="hint">
-  <kbd>Space</kbd> Start/Stop &nbsp;|&nbsp; <kbd>Enter</kbd> Mark &nbsp;|&nbsp; <kbd>R</kbd> Reset &nbsp;|&nbsp; <kbd>D</kbd> PDF
-</div>
-
-<div class="timer" id="timer">00:0</div>
-
-<div class="btn-row">
-  <button class="btn green"  id="startBtn" onclick="startTimer()">start</button>
-  <button class="btn red"    id="stopBtn"  onclick="stopTimer()" disabled>stop</button>
-  <button class="btn mark"   id="markBtn"  onclick="markQuestion()">mark</button>
-  <button class="btn orange" id="resetBtn" onclick="resetTimer()">reset</button>
-  <button class="btn blue"   id="pdfBtn"   onclick="downloadPDF()">📄 pdf</button>
-</div>
-
-<div class="question-box" id="questionBox">
-  <div class="q-top">
-    <h3>📋 Question Mark</h3>
-    <span class="q-count" id="qCount"></span>
+  <!-- TOPIC BAR -->
+  <div class="topic-bar">
+    <input type="text" id="topicInput" placeholder="Add Topic (e.g. Vectors)">
+    <button onclick="addTopic()">Add</button>
   </div>
-  <div id="questionList">
-    <div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>
+
+  <div class="current-topics" id="currentTopicsDisplay">
+    <span id="topicsText"></span>
+    <button onclick="clearAllTopics()">Clear</button>
   </div>
-</div>
 
-<div class="localtime-box">
-  <button class="localtime-toggle" id="localtimeToggle" onclick="toggleLocalTime()">show Local time</button>
-  <div class="localtime-display" id="localtimeDisplay">
-    <div class="l-date" id="lDate"></div>
-    <div class="l-time" id="lTime"></div>
+  <div class="hint">
+    <kbd>Space</kbd> Start/Stop &nbsp;|&nbsp; <kbd>Enter</kbd> Mark &nbsp;|&nbsp; <kbd>R</kbd> Reset &nbsp;|&nbsp; <kbd>D</kbd> PDF
   </div>
-</div>
 
-<script>
-  const { jsPDF } = window.jspdf;
+  <div class="timer" id="timer">00:00</div>
 
-  let startTime = 0, elapsed = 0, interval = null, running = false;
-  let questionCount = 0, timerStartedAt = null, timerEndedAt = null, questionData = [];
+  <div class="btn-row">
+    <button class="btn green"  id="startBtn" onclick="startTimer()">start</button>
+    <button class="btn red"    id="stopBtn"  onclick="stopTimer()" disabled>stop</button>
+    <button class="btn mark"   id="markBtn"  onclick="markQuestion()">mark</button>
+    <button class="btn orange" id="resetBtn" onclick="resetTimer()">reset</button>
+    <button class="btn blue"   id="pdfBtn"   onclick="downloadPDF()">📄 pdf</button>
+  </div>
 
-  const timer = document.getElementById('timer');
-  const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const qList = document.getElementById('questionList');
-  const qCount = document.getElementById('qCount');
+  <div class="question-box" id="questionBox">
+    <div class="q-top">
+      <h3>📋 Question Mark</h3>
+      <span class="q-count" id="qCount"></span>
+    </div>
+    <div id="questionList">
+      <div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>
+    </div>
+  </div>
 
-  function fmt(ms) {
-    const s = Math.floor(ms/1000), h = Math.floor(s/3600);
-    const m = Math.floor((s%3600)/60), sec = s%60;
-    if (h>0) return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-    return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-  }
-  function ordinal(n) { return n<=3?['1st','2nd','3rd'][n-1]:n+'th'; }
+  <div class="localtime-box">
+    <button class="localtime-toggle" id="localtimeToggle" onclick="toggleLocalTime()">show Local time</button>
+    <div class="localtime-display" id="localtimeDisplay">
+      <div class="l-date" id="lDate"></div>
+      <div class="l-time" id="lTime"></div>
+    </div>
+  </div>
 
-  function getLocalDate() {
-    return new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-  }
-  function getLocalTime() {
-    return new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-  }
-  function getLocalFullTime() { return getLocalDate()+'  '+getLocalTime(); }
+  <script>
+    const { jsPDF } = window.jspdf;
 
-  function tick() { timer.textContent = fmt(elapsed + Date.now() - startTime); }
+    let startTime = 0, elapsed = 0, interval = null, running = false;
+    let questionCount = 0, timerStartedAt = null, timerEndedAt = null, questionData = [];
+    let currentTopics = [];
 
-  function startTimer() {
-    if (running) return;
-    running = true; startTime = Date.now();
-    if (!timerStartedAt) timerStartedAt = getLocalFullTime();
-    interval = setInterval(tick, 50);
-    timer.classList.remove('paused');
-    startBtn.disabled = true; stopBtn.disabled = false;
-  }
-  function stopTimer() {
-    if (!running) return;
-    running = false; elapsed += Date.now() - startTime;
-    clearInterval(interval); timer.classList.add('paused');
-    timer.textContent = fmt(elapsed); timerEndedAt = getLocalFullTime();
-    startBtn.disabled = false; stopBtn.disabled = true;
-  }
-  function resetTimer() {
-    stopTimer(); elapsed = 0; timer.textContent = '00:0';
-    timer.classList.remove('paused');
-    startBtn.disabled = false; stopBtn.disabled = true;
-    timerStartedAt = null; timerEndedAt = null;
-    questionCount = 0; questionData = [];
-    qCount.textContent = '';
-    qList.innerHTML = '<div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>';
-  }
+    const timer = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const qList = document.getElementById('questionList');
+    const qCount = document.getElementById('qCount');
+    const topicInput = document.getElementById('topicInput');
+    const currentTopicsDisplay = document.getElementById('currentTopicsDisplay');
+    const topicsText = document.getElementById('topicsText');
 
-  function buildEntry(num, ord, timerStr, localStr) {
-    var entry = document.createElement('div');
-    entry.className = 'entry'; entry.dataset.status = 'alive';
-    var numSpan = document.createElement('span');
-    numSpan.className = 'num'; numSpan.textContent = num + ')';
-    var wrap = document.createElement('span'); wrap.className = 'wrap';
-    var qText = document.createElement('span');
-    qText.className = 'qtext'; qText.textContent = 'You did your ' + ord + ' question';
-    wrap.appendChild(qText);
-    var timeSpan = document.createElement('span');
-    timeSpan.className = 'time';
-    timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + localStr;
-    wrap.appendChild(document.createElement('br'));
-    wrap.appendChild(timeSpan);
-    var delBtn = document.createElement('button');
-    delBtn.className = 'del-btn'; delBtn.textContent = '🗑️'; delBtn.title = 'Delete';
-    delBtn.onclick = function() { deleteQuestion(delBtn, entry); };
-    entry.appendChild(numSpan); entry.appendChild(wrap); entry.appendChild(delBtn);
-    return entry;
-  }
-
-  function markQuestion() {
-    questionCount++;
-    var em = document.getElementById('emptyMsg');
-    if (em) em.remove();
-    var currentTime = running ? elapsed + (Date.now() - startTime) : elapsed;
-    var timerStr = fmt(currentTime), localStr = getLocalFullTime();
-    questionData.push({ timerTime: timerStr, localTime: localStr, alive: true });
-    qList.appendChild(buildEntry(questionCount, ordinal(questionCount), timerStr, localStr));
-    qCount.textContent = '(' + questionCount + ')';
-    var box = document.getElementById('questionBox');
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function deleteQuestion(btn, entry) {
-    if (entry.dataset.status === 'dead') return;
-    entry.dataset.status = 'dead'; entry.classList.add('dead');
-    btn.style.display = 'none'; renumberQuestions();
-  }
-  function renumberQuestions() {
-    var entries = qList.querySelectorAll('.entry'), alive = 0;
-    entries.forEach(function(e) {
-      if (e.dataset.status === 'alive') {
-        alive++;
-        e.querySelector('.num').textContent = alive + ')';
-        e.querySelector('.qtext').textContent = 'You did your ' + ordinal(alive) + ' question';
+    // Prevent keyboard shortcuts when typing in topic bar
+    topicInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addTopic();
       }
+      // Stop propagation so global shortcuts don't fire
+      e.stopPropagation();
     });
-    questionCount = alive;
-    qCount.textContent = alive > 0 ? '(' + alive + ')' : '';
-  }
 
-  var localtimeVisible = false;
-  function toggleLocalTime() {
-    localtimeVisible = !localtimeVisible;
-    var disp = document.getElementById('localtimeDisplay');
-    var btn = document.getElementById('localtimeToggle');
-    if (localtimeVisible) { disp.classList.add('show'); btn.textContent = 'hide Local time'; }
-    else { disp.classList.remove('show'); btn.textContent = 'show Local time'; }
-  }
-  function updateLocalTime() {
-    document.getElementById('lDate').textContent = getLocalDate();
-    document.getElementById('lTime').textContent = getLocalTime();
-  }
-  setInterval(updateLocalTime, 1000);
-  updateLocalTime();
+    function fmt(ms) {
+      const s = Math.floor(ms / 1000);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+      return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
 
-  var quotes = [
-    "The expert in anything was once a beginner. Keep going! 🚀",
-    "Small progress is still progress. You're doing great! 💪",
-    "Consistency beats intensity. Keep showing up! 🔥",
-    "Every question solved is a step closer to mastery. 🎯",
-    "Don't stop when you're tired. Stop when you're done! 🏆",
-    "The only bad workout is the one that didn't happen. ✨",
-    "Believe you can and you're halfway there. 🌟",
-    "Success is the sum of small efforts repeated daily. 📈",
-    "You didn't come this far to only come this far. 💎",
-    "Hard work beats talent when talent doesn't work hard. 🔑"
-  ];
+    function ordinal(n) {
+      return n <= 3 ? ['1st','2nd','3rd'][n-1] : n + 'th';
+    }
 
-  function downloadPDF() {
-    var alive = questionData.filter(function(q) { return q.alive; });
-    if (alive.length === 0) { alert('No questions marked yet!'); return; }
-    var doc = new jsPDF('p','mm','a4');
-    var pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
-    var mg = 15, y = mg;
-    doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
-    doc.text('You did ' + alive.length + ' questions today', pw/2, y, {align:'center'});
-    y += 4; doc.setDrawColor(0,150,0); doc.setLineWidth(0.8); doc.line(mg,y,pw-mg,y); y += 8;
-    doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-    var today = new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'long',year:'numeric'});
-    var si = timerStartedAt||getLocalFullTime(), ei = timerEndedAt||getLocalFullTime();
-    doc.text('📅 Date: '+today,mg,y); y+=6;
-    doc.text('▶ Started: '+si,mg,y); y+=6;
-    doc.text('⏹ Ended: '+ei,mg,y); y+=8;
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(0,100,0);
-    doc.text('Total Time: '+fmt(elapsed),mg,y); y+=8;
-    var td=[], qn=0;
-    for(var i=0;i<questionData.length;i++){
-      if(questionData[i].alive){
-        qn++; td.push([qn,'Question '+ordinal(qn),questionData[i].timerTime,questionData[i].localTime]);
+    function getLocalDate() {
+      return new Date().toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function getLocalTime() {
+      return new Date().toLocaleTimeString('en-IN', { timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    }
+
+    function getLocalFullTime() {
+      return getLocalDate() + '  ' + getLocalTime();
+    }
+
+    function tick() {
+      timer.textContent = fmt(elapsed + Date.now() - startTime);
+    }
+
+    function startTimer() {
+      if (running) return;
+      running = true;
+      startTime = Date.now();
+      if (!timerStartedAt) timerStartedAt = getLocalFullTime();
+      interval = setInterval(tick, 50);
+      timer.classList.remove('paused');
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    }
+
+    function stopTimer() {
+      if (!running) return;
+      running = false;
+      elapsed += Date.now() - startTime;
+      clearInterval(interval);
+      timer.classList.add('paused');
+      timer.textContent = fmt(elapsed);
+      timerEndedAt = getLocalFullTime();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    function resetTimer() {
+      stopTimer();
+      elapsed = 0;
+      timer.textContent = '00:00';
+      timer.classList.remove('paused');
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      timerStartedAt = null;
+      timerEndedAt = null;
+      questionCount = 0;
+      questionData = [];
+      qCount.textContent = '';
+      qList.innerHTML = '<div class="empty-msg" id="emptyMsg">Press <b>Enter</b> to mark a question</div>';
+      currentTopics = [];
+      currentTopicsDisplay.classList.remove('show');
+      topicInput.value = "";
+    }
+
+    function buildEntry(num, ord, timerStr, localStr, topics = []) {
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+      entry.dataset.status = 'alive';
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'num';
+      numSpan.textContent = num + ')';
+
+      const wrap = document.createElement('span');
+      wrap.className = 'wrap';
+
+      const qText = document.createElement('span');
+      qText.className = 'qtext';
+      if (topics.length > 0) {
+        qText.textContent = `You did your ${ord} question (${topics.join(', ')})`;
+      } else {
+        qText.textContent = `You did your ${ord} question`;
+      }
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'time';
+      timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + localStr;
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '🗑️';
+      delBtn.title = 'Delete';
+      delBtn.onclick = () => deleteQuestion(delBtn, entry);
+
+      wrap.appendChild(qText);
+      wrap.appendChild(document.createElement('br'));
+      wrap.appendChild(timeSpan);
+
+      entry.appendChild(numSpan);
+      entry.appendChild(wrap);
+      entry.appendChild(delBtn);
+
+      return entry;
+    }
+
+    function markQuestion() {
+      questionCount++;
+      const em = document.getElementById('emptyMsg');
+      if (em) em.remove();
+
+      const currentTime = running ? elapsed + (Date.now() - startTime) : elapsed;
+      const timerStr = fmt(currentTime);
+      const localStr = getLocalFullTime();
+
+      // Save topics at the time of marking
+      const topicsAtMark = [...currentTopics];
+
+      questionData.push({ 
+        timerTime: timerStr, 
+        localTime: localStr, 
+        alive: true,
+        topics: topicsAtMark 
+      });
+
+      qList.appendChild(buildEntry(questionCount, ordinal(questionCount), timerStr, localStr, topicsAtMark));
+      qCount.textContent = '(' + questionCount + ')';
+
+      const box = document.getElementById('questionBox');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function deleteQuestion(btn, entry) {
+      if (entry.dataset.status === 'dead') return;
+      entry.dataset.status = 'dead';
+      entry.classList.add('dead');
+      btn.style.display = 'none';
+      renumberQuestions();
+    }
+
+    function renumberQuestions() {
+      const entries = qList.querySelectorAll('.entry');
+      let alive = 0;
+
+      entries.forEach(e => {
+        if (e.dataset.status === 'alive') {
+          alive++;
+          e.querySelector('.num').textContent = alive + ')';
+          const qTextEl = e.querySelector('.qtext');
+          const topics = questionData[alive - 1]?.topics || [];
+          if (topics.length > 0) {
+            qTextEl.textContent = `You did your ${ordinal(alive)} question (${topics.join(', ')})`;
+          } else {
+            qTextEl.textContent = `You did your ${ordinal(alive)} question`;
+          }
+        }
+      });
+
+      questionCount = alive;
+      qCount.textContent = alive > 0 ? '(' + alive + ')' : '';
+    }
+
+    function addTopic() {
+      const topic = topicInput.value.trim();
+      if (!topic) return;
+
+      // Avoid duplicates
+      if (!currentTopics.includes(topic)) {
+        currentTopics.push(topic);
+      }
+
+      updateTopicsDisplay();
+      topicInput.value = "";
+      topicInput.blur(); // Remove focus from input after adding
+    }
+
+    function updateTopicsDisplay() {
+      if (currentTopics.length > 0) {
+        currentTopicsDisplay.classList.add('show');
+        topicsText.innerHTML = currentTopics.map((t, index) => 
+          `<span class="topic-tag">${t} <button onclick="removeSingleTopic(${index}, event)">×</button></span>`
+        ).join(' ');
+      } else {
+        currentTopicsDisplay.classList.remove('show');
       }
     }
-    doc.autoTable({startY:y,head:[['#','Question','Timer','Local Time']],body:td,theme:'grid',
-      styles:{fontSize:9,cellPadding:3,font:'helvetica'},
-      headStyles:{fillColor:[34,34,34],textColor:[255,255,255],fontStyle:'bold',fontSize:10},
-      alternateRowStyles:{fillColor:[245,250,245]},
-      columnStyles:{0:{cellWidth:12,halign:'center'},1:{cellWidth:40},2:{cellWidth:30,halign:'center'},3:{cellWidth:45}},
-      margin:{left:mg,right:mg}});
-    y = doc.lastAutoTable.finalY+12;
-    var q = quotes[Math.floor(Math.random()*quotes.length)];
-    doc.setFontSize(13); doc.setFont('helvetica','italic'); doc.setTextColor(60,60,60);
-    doc.text(q,pw/2,y,{align:'center'}); y+=6;
-    doc.setDrawColor(180,180,180); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=8;
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(150,150,150);
-    doc.text('by Harsh',pw/2,ph-10,{align:'center'});
-    var cd = today.replace(/,/g,'').replace(/\s+/g,'_');
-    doc.save(alive.length+' question did on '+cd+'.pdf');
-  }
 
-  document.addEventListener('keydown', function(e) {
-    if (e.code === 'Space') { e.preventDefault(); running ? stopTimer() : startTimer(); }
-    if (e.code === 'Enter') { e.preventDefault(); markQuestion(); }
-    if (e.code === 'KeyR')  { e.preventDefault(); resetTimer(); }
-    if (e.code === 'KeyD')  { e.preventDefault(); downloadPDF(); }
-  });
-</script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e0574faf41211',t:'MTc4MDgxODE1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    function removeSingleTopic(index, event) {
+      event.stopPropagation();
+      currentTopics.splice(index, 1);
+      updateTopicsDisplay();
+    }
+
+    function clearAllTopics() {
+      currentTopics = [];
+      currentTopicsDisplay.classList.remove('show');
+      topicInput.value = "";
+    }
+
+    let localtimeVisible = false;
+
+    function toggleLocalTime() {
+      localtimeVisible = !localtimeVisible;
+      const disp = document.getElementById('localtimeDisplay');
+      const btn = document.getElementById('localtimeToggle');
+
+      if (localtimeVisible) {
+        disp.classList.add('show');
+        btn.textContent = 'hide Local time';
+      } else {
+        disp.classList.remove('show');
+        btn.textContent = 'show Local time';
+      }
+    }
+
+    function updateLocalTime() {
+      document.getElementById('lDate').textContent = getLocalDate();
+      document.getElementById('lTime').textContent = getLocalTime();
+    }
+    setInterval(updateLocalTime, 1000);
+    updateLocalTime();
+
+    function downloadPDF() {
+      const alive = questionData.filter(q => q.alive);
+      if (alive.length === 0) {
+        alert('No questions marked yet!');
+        return;
+      }
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      let y = 15;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+
+      let title = `You did ${alive.length} questions today`;
+      if (currentTopics.length > 0) {
+        title = `You did ${alive.length} questions on (${currentTopics.join(', ')})`;
+      }
+      doc.text(title, pw / 2, y, { align: 'center' });
+
+      y += 6;
+      doc.setDrawColor(0, 150, 0);
+      doc.setLineWidth(0.8);
+      doc.line(15, y, pw - 15, y);
+      y += 10;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+
+      const today = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'long', year: 'numeric' });
+      const si = timerStartedAt || getLocalFullTime();
+      const ei = timerEndedAt || getLocalFullTime();
+
+      doc.text('📅 Date: ' + today, 15, y); y += 7;
+      doc.text('▶ Started: ' + si, 15, y); y += 7;
+      doc.text('⏹ Ended: ' + ei, 15, y); y += 9;
+
+      const currentTotal = running ? elapsed + (Date.now() - startTime) : elapsed;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 100, 0);
+      doc.text('Total Time: ' + fmt(currentTotal), 15, y); y += 10;
+
+      const tableData = [];
+      let qn = 0;
+      questionData.forEach(q => {
+        if (q.alive) {
+          qn++;
+          let qName = `Question ${ordinal(qn)}`;
+          if (q.topics && q.topics.length > 0) {
+            qName = `Question ${ordinal(qn)} (${q.topics.join(', ')})`;
+          }
+          tableData.push([qn, qName, q.timerTime, q.localTime]);
+        }
+      });
+
+      doc.autoTable({
+        startY: y,
+        head: [['#', 'Question', 'Timer', 'Local Time']],
+        body: tableData,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: [34, 34, 34], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 12 }, 2: { halign: 'center' } },
+        margin: { left: 15, right: 15 }
+      });
+
+      y = doc.lastAutoTable.finalY + 14;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Keep going! Consistency beats intensity.', pw / 2, y, { align: 'center' });
+
+      // Footer
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(120, 120, 120);
+      doc.text('by harsh', pw / 2, ph - 12, { align: 'center' });
+
+      // Filename
+      let filename = '';
+      const cd = today.replace(/,/g, '').replace(/\s+/g, '_');
+      if (currentTopics.length > 0) {
+        const topicsStr = currentTopics.join('_');
+        filename = `${alive.length} questions on ${topicsStr} on ${cd}.pdf`;
+      } else {
+        filename = `${alive.length} question did on ${cd}.pdf`;
+      }
+      doc.save(filename);
+    }
+
+    // Global keyboard shortcuts (only when not typing in topic input)
+    document.addEventListener('keydown', function(e) {
+      // Ignore if typing in topic input
+      if (document.activeElement === topicInput) return;
+
+      if (e.code === 'Space') { e.preventDefault(); running ? stopTimer() : startTimer(); }
+      if (e.code === 'Enter') { e.preventDefault(); markQuestion(); }
+      if (e.code === 'KeyR')  { e.preventDefault(); resetTimer(); }
+      if (e.code === 'KeyD')  { e.preventDefault(); downloadPDF(); }
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0884e42c9bb8374',t:'MTc4MDkyNTk5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
