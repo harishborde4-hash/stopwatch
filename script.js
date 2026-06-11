@@ -2,12 +2,12 @@
      1. FIREBASE CONFIGURATION (EASILY CONFIGURABLE BY USER!)
      ========================================================= */
   const firebaseConfig = {
-    apiKey: "AIzaSyDnXr-M1w6pg0QKeAcA_nSwwxl9lxYKt8M",
-    authDomain: "jee-tracker-harsh.firebaseapp.com",
-    projectId: "jee-tracker-harsh",
-    storageBucket: "jee-tracker-harsh.firebasestorage.app",
-    messagingSenderId: "638304954291",
-    appId: "1:638304954291:web:47b6181f6b6f5c933ecdc6"
+    apiKey: "AIzaSyDrRL7BkyejSooFNx0pD5hBSMsgkfM8MpM",
+    authDomain: "database-f0aee.firebaseapp.com",
+    projectId: "database-f0aee",
+    storageBucket: "database-f0aee.firebasestorage.app",
+    messagingSenderId: "1025759093694",
+    appId: "1:1025759093694:web:debbf45afc5f0241e88fef"
   };
 
   let isFirebaseInitialized = false;
