@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch — by Harsh</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: #000;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ===== ANIMATED BACKGROUND GRID ===== */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 20s linear infinite;
+    z-index: 0;
+  }
+  @keyframes gridMove {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+  }
+
+  /* ===== FLOATING GLOW ORBS ===== */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    z-index: 0;
+    animation: orbFloat 12s ease-in-out infinite alternate;
+  }
+  .orb-1 {
+    width: 300px; height: 300px;
+    background: #4CAF50;
+    top: -80px; left: -80px;
+    animation-duration: 14s;
+  }
+  .orb-2 {
+    width: 250px; height: 250px;
+    background: #2196F3;
+    bottom: -60px; right: -60px;
+    animation-duration: 10s;
+    animation-delay: -3s;
+  }
+  .orb-3 {
+    width: 200px; height: 200px;
+    background: #9C27B0;
+    top: 40%; left: 60%;
+    animation-duration: 16s;
+    animation-delay: -7s;
+  }
+  @keyframes orbFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(30px, -20px) scale(1.1); }
+    100% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    animation: fadeInUp 1s ease-out;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== TITLE ===== */
+  .title {
+    color: #fff;
+    font-size: clamp(28px, 6vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    animation: titleGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes titleGlow {
+    0%   { text-shadow: 0 0 20px rgba(76,175,80,0.2); }
+    100% { text-shadow: 0 0 40px rgba(76,175,80,0.5), 0 0 80px rgba(76,175,80,0.15); }
+  }
+
+  .subtitle {
+    color: #555;
+    font-size: 15px;
+    margin-bottom: 50px;
+    animation: fadeInUp 1s ease-out 0.3s both;
+  }
+
+  /* ===== CHOICE CARDS ===== */
+  .choices {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 50px;
+  }
+  .card {
+    width: 180px;
+    height: 180px;
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    animation: cardPop 0.6s ease-out both;
+  }
+  .card:nth-child(1) { animation-delay: 0.5s; }
+  .card:nth-child(2) { animation-delay: 0.7s; }
+
+  @keyframes cardPop {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .card:hover {
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .card:active { transform: scale(0.97); }
+
+  .card-icon {
+    font-size: 48px;
+    line-height: 1;
+    transition: transform 0.3s;
+  }
+  .card:hover .card-icon { transform: scale(1.15); }
+
+  .card-label {
+    color: #ccc;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .card-desc {
+    color: #555;
+    font-size: 12px;
+  }
+
+  /* ===== MOTIVATIONAL QUOTE ===== */
+  .quote {
+    color: #444;
+    font-size: 14px;
+    font-style: italic;
+    max-width: 400px;
+    margin: 0 auto 40px;
+    line-height: 1.5;
+    animation: fadeInUp 1s ease-out 0.9s both;
+    min-height: 44px;
+    transition: opacity 0.5s;
+  }
+
+  /* ===== BOTTOM BAR ===== */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    z-index: 10;
+  }
+  .local-time {
+    color: #666;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .local-time .time { color: #aaa; font-weight: 600; font-size: 16px; }
+  .credit {
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== PULSE RING ON HOVER ===== */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 24px;
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .card:nth-child(1)::before { }
+  .card:hover::before { border-color: rgba(76,175,80,0.3); }
+  .card:nth-child(2):hover::before { border-color: rgba(33,150,243,0.3); }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+  <h1 class="title">welcome to stopwatch</h1>
+  <p class="subtitle">Choose your device to begin</p>
+
+  <div class="choices">
+    <a href="mobile.html" class="card" id="cardMobile">
+      <span class="card-icon">📱</span>
+      <span class="card-label">Mobile</span>
+      <span class="card-desc">Touch-optimized</span>
+    </a>
+    <a href="desktop.html" class="card" id="cardDesktop">
+      <span class="card-icon">💻</span>
+      <span class="card-label">Computer</span>
+      <span class="card-desc">Keyboard shortcuts</span>
+    </a>
+  </div>
+
+  <div class="quote" id="quote"></div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="local-time">
+    <div class="time" id="lTime"></div>
+    <div id="lDate"></div>
+  </div>
+  <div class="credit">~ BY HARSH</div>
+</div>
+
+<script>
+  /* ---- ROTATING QUOTES ---- */
+  var quotes = [
+    "\"Time is what we want most, but what we use worst.\" — William Penn",
+    "\"The secret of getting ahead is getting started.\" — Mark Twain",
+    "\"Every second counts. Make them count.\"",
+    "\"Focus on progress, not perfection.\"",
+    "\"Small steps every day lead to big results.\"",
+    "\"Your future is created by what you do today.\"",
+    "\"Don't watch the clock; do what it does. Keep going.\" — Sam Levenson",
+    "\"Consistency is the key to mastery.\"",
+    "\"One question at a time. One day at a time.\"",
+    "\"The clock is ticking. Make every second matter.\""
+  ];
+  var qi = 0;
+  var qEl = document.getElementById('quote');
+  function rotateQuote() {
+    qEl.style.opacity = 0;
+    setTimeout(function() {
+      qEl.textContent = quotes[qi];
+      qEl.style.opacity = 1;
+      qi = (qi + 1) % quotes.length;
+    }, 500);
+  }
+  rotateQuote();
+  setInterval(rotateQuote, 5000);
+
+  /* ---- LOCAL TIME ---- */
+  function updateTime() {
+    var now = new Date();
+    document.getElementById('lTime').textContent = now.toLocaleTimeString('en-IN', {
+      timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
+    });
+    document.getElementById('lDate').textContent = now.toLocaleDateString('en-IN', {
+      timeZone:'Asia/Kolkata', day:'2-digit', month:'short', year:'numeric'
+    });
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e067eed3c1211',t:'MTc4MDgxODIwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

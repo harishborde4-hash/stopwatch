@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Stopwatch — Mobile</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body {
+      background: #000;
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      user-select: none;
+      touch-action: manipulation;
+      color: #fff;
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #111;
+      border-bottom: 1px solid #222;
+      z-index: 100;
+      height: 52px;
+    }
+    .top-time { font-size: 17px; font-weight: 600; }
+    .top-date { font-size: 11px; color: #666; margin-top: 1px; }
+    .rotator-btn {
+      background: #1a1a1a;
+      border: 1.5px solid #444;
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .rotator-btn:active { background: #333; }
+
+    /* ===== HOME LINK ===== */
+    .home-link {
+      position: fixed;
+      top: 58px; left: 12px;
+      color: #444;
+      font-size: 12px;
+      text-decoration: none;
+      z-index: 110;
+      padding: 4px 10px;
+      border: 1px solid #333;
+      border-radius: 6px;
+    }
+
+    /* ===== MAIN CONTAINER ===== */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100dvh;
+      padding-top: 70px;
+      padding-bottom: 70px;
+    }
+
+    /* Timer */
+    .timer {
+      color: #fff;
+      font-size: 19vw;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      margin: 10px 0 20px;
+      transition: color 0.2s;
+    }
+    .timer.paused { color: #ff4444; }
+
+    /* ===== PORTRAIT LAYOUT (default) ===== */
+    .main {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn-left {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn-s {
+      width: 98px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 2px solid;
+      transition: all 0.1s;
+    }
+    .btn-s:active { transform: scale(0.95); }
+
+    .btn-s.green { background: rgba(76,175,80,0.1); border-color: #4CAF50; color: #4CAF50; }
+    .btn-s.red { background: rgba(244,67,54,0.1); border-color: #f44336; color: #f44336; }
+    .btn-s.orange { background: rgba(255,152,0,0.1); border-color: #ff9800; color: #ff9800; }
+    .btn-s.blue { background: rgba(33,150,243,0.1); border-color: #2196F3; color: #2196F3; }
+
+    .btn-mark {
+      flex: 1;
+      min-height: 180px;
+      border-radius: 16px;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      background: rgba(156,39,176,0.08);
+      border: 2.5px solid #9C27B0;
+      color: #9C27B0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Portrait button row */
+    .portrait-btns {
+      display: flex;
+      width: 100%;
+      padding: 0 16px;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .btn-mark:active { background: rgba(156,39,176,0.18); transform: scale(0.98); }
+    .btn-mark .m-icon { font-size: 42px; }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      background: #111;
+      border-top: 2px solid #333;
+      z-index: 90;
+    }
+    .q-label { color: #aaa; font-size: 15px; font-weight: 600; }
+    .q-count { color: #4CAF50; }
+    .q-toggle {
+      background: #1a1a1a;
+      border: 1.5px solid #444;
+      border-radius: 10px;
+      padding: 8px 16px;
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Question Panel */
+    .q-panel {
+      position: fixed;
+      bottom: 58px; left: 0; right: 0;
+      max-height: 45vh;
+      background: #0d0d0d;
+      border-top: 2px solid #333;
+      z-index: 80;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease;
+    }
+    .q-panel.open { transform: translateY(0); }
+    .q-panel .inner { padding: 14px 18px; }
+    .entry {
+      display: flex; align-items: flex-start; padding: 12px 0;
+      border-bottom: 1px solid #222; gap: 12px;
+    }
+    .entry .num { color: #4CAF50; font-weight: 700; font-size: 15px; min-width: 28px; }
+    .entry .qtext { color: #ddd; font-size: 14.5px; }
+    .entry .time { color: #666; font-size: 12px; display: block; margin-top: 4px; }
+    .del-btn {
+      background: none; border: none; cursor: pointer; font-size: 22px;
+      opacity: 0.5; padding: 6px; margin-left: auto;
+    }
+
+    /* ===== LANDSCAPE MODE (forced or auto) ===== */
+    body.landscape .main {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 58px;
+      padding-bottom: 60px;
+      padding-left: 12px;
+      padding-right: 12px;
+      gap: 12px;
+    }
+
+    body.landscape .timer {
+      flex: 1 1 auto;
+      font-size: 18vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      order: 1;
+      min-width: 0;
+    }
+
+    body.landscape .btn-left {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      order: 0;
+      flex-shrink: 0;
+    }
+
+    body.landscape .btn-s { 
+      width: 76px; 
+      height: 38px; 
+      font-size: 11px; 
+    }
+
+    body.landscape .btn-mark {
+      order: 2;
+      flex: 0 0 138px;
+      min-height: 175px;
+      height: 175px;
+      margin: 0;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Hide portrait wrapper in landscape */
+    body.landscape .portrait-btns {
+      display: contents;
+    }
+
+    /* Move PDF to bottom bar in landscape */
+    body.landscape #pdfBtn {
+      display: none;
+    }
+
+    body.landscape #pdfBtnLandscape {
+      display: block !important;
+    }
+
+    body.landscape .bottom-bar {
+      gap: 10px;
+      padding: 8px 14px;
+    }
+
+    body.landscape .bottom-bar .q-section { 
+      flex: 1; 
+    }
+
+    body.landscape .pdf-btn-l {
+      background: rgba(33,150,243,0.1);
+      border: 2px solid #2196F3;
+      color: #2196F3;
+      border-radius: 10px;
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Desktop notice */
+    @media (min-width: 768px) {
+      body::after {
+        content: '👉 Best viewed on mobile';
+        position: fixed;
+        bottom: 20px; left: 50%; transform: translateX(-50%);
+        color: #333; font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div>
+      <div class="top-time" id="topTime"></div>
+      <div class="top-date" id="topDate"></div>
+    </div>
+    <button class="rotator-btn" id="rotatorBtn" onclick="toggleRotation()">⟳ Landscape</button>
+  </div>
+
+  <a href="index.html" class="home-link">← Home</a>
+
+  <!-- MAIN CONTENT -->
+  <div class="main" id="main">
+    <!-- TIMER -->
+    <div class="timer" id="timer">00:00</div>
+
+    <!-- Portrait: Left buttons + Mark button side by side -->
+    <div class="portrait-btns">
+      <!-- LEFT BUTTONS -->
+      <div class="btn-left" id="btnLeft">
+        <button class="btn-s green" id="startBtn" onclick="startTimer()">▶ Start</button>
+        <button class="btn-s red" id="stopBtn" onclick="stopTimer()" disabled>⏸ Stop</button>
+        <button class="btn-s orange" id="resetBtn" onclick="resetTimer()">↺ Reset</button>
+        <button class="btn-s blue" id="pdfBtn" onclick="downloadPDF()">📄 PDF</button>
+      </div>
+
+      <!-- MARK BUTTON -->
+      <button class="btn-mark" id="markBtn" onclick="markQuestion()">
+        <span class="m-icon">✓</span>
+        Mark
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="q-section">
+      <span class="q-label">📋 Questions <span class="q-count" id="qCount"></span></span>
+    </div>
+    <button class="q-toggle" id="qToggle" onclick="toggleQPanel()">List ▼</button>
+
+    <!-- Landscape only PDF button -->
+    <button class="pdf-btn-l" id="pdfBtnLandscape" onclick="downloadPDF()" style="display: none;">📄 PDF</button>
+  </div>
+
+  <!-- QUESTION PANEL -->
+  <div class="q-panel" id="qPanel">
+    <div class="inner" id="questionList">
+      <div class="empty-msg" style="color:#555; text-align:center; padding:20px 0;">
+        Tap <b>Mark</b> to log a question
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    let startTime = 0, elapsed = 0, interval = null, running = false;
+    let questionCount = 0, timerStartedAt = null, timerEndedAt = null, questionData = [];
+
+    const timerEl = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const qList = document.getElementById('questionList');
+    const qCount = document.getElementById('qCount');
+    const qPanel = document.getElementById('qPanel');
+    const qToggle = document.getElementById('qToggle');
+    const rotatorBtn = document.getElementById('rotatorBtn');
+    const main = document.getElementById('main');
+
+    let isForcedLandscape = false;
+
+    function fmt(ms) {
+      const s = Math.floor(ms / 1000);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+      return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+
+    function ordinal(n) {
+      return n <= 3 ? ['1st','2nd','3rd'][n-1] : n + 'th';
+    }
+
+    function getLocalDate() {
+      return new Date().toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function getLocalTime() {
+      return new Date().toLocaleTimeString('en-IN', { timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    }
+
+    function getLocalFullTime() {
+      return getLocalDate() + '  ' + getLocalTime();
+    }
+
+    function updateLocalTime() {
+      const t = document.getElementById('topTime');
+      const d = document.getElementById('topDate');
+      if (t) t.textContent = getLocalTime();
+      if (d) d.textContent = getLocalDate();
+    }
+    setInterval(updateLocalTime, 1000);
+    updateLocalTime();
+
+    function tick() {
+      timerEl.textContent = fmt(elapsed + Date.now() - startTime);
+    }
+
+    function startTimer() {
+      if (running) return;
+      running = true;
+      startTime = Date.now();
+      if (!timerStartedAt) timerStartedAt = getLocalFullTime();
+      interval = setInterval(tick, 50);
+      timerEl.classList.remove('paused');
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    }
+
+    function stopTimer() {
+      if (!running) return;
+      running = false;
+      elapsed += Date.now() - startTime;
+      clearInterval(interval);
+      timerEl.classList.add('paused');
+      timerEl.textContent = fmt(elapsed);
+      timerEndedAt = getLocalFullTime();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    function resetTimer() {
+      stopTimer();
+      elapsed = 0;
+      timerEl.textContent = '00:00';
+      timerEl.classList.remove('paused');
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      timerStartedAt = null;
+      timerEndedAt = null;
+      questionCount = 0;
+      questionData = [];
+      qCount.textContent = '';
+      qList.innerHTML = '<div class="empty-msg" style="color:#555; text-align:center; padding:20px 0;">Tap <b>Mark</b> to log a question</div>';
+      qPanel.classList.remove('open');
+      qToggle.textContent = 'List ▼';
+    }
+
+    function toggleQPanel() {
+      const isOpen = qPanel.classList.toggle('open');
+      qToggle.textContent = isOpen ? 'Close ▲' : 'List ▼';
+    }
+
+    function buildEntry(num, ord, timerStr, localStr) {
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+      entry.dataset.status = 'alive';
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'num';
+      numSpan.textContent = num + ')';
+
+      const wrap = document.createElement('div');
+      wrap.style.flex = '1';
+
+      const qText = document.createElement('div');
+      qText.className = 'qtext';
+      qText.textContent = 'You did your ' + ord + ' question';
+
+      const timeSpan = document.createElement('div');
+      timeSpan.className = 'time';
+      timeSpan.textContent = '⏱ ' + timerStr + '  |  🕐 ' + localStr;
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = () => deleteQuestion(entry);
+
+      wrap.appendChild(qText);
+      wrap.appendChild(timeSpan);
+
+      entry.appendChild(numSpan);
+      entry.appendChild(wrap);
+      entry.appendChild(delBtn);
+
+      return entry;
+    }
+
+    function markQuestion() {
+      questionCount++;
+      const em = document.querySelector('.empty-msg');
+      if (em) em.remove();
+
+      const currentTime = running ? elapsed + (Date.now() - startTime) : elapsed;
+      const timerStr = fmt(currentTime);
+      const localStr = getLocalFullTime();
+
+      questionData.push({ timerTime: timerStr, localTime: localStr, alive: true });
+
+      qList.appendChild(buildEntry(questionCount, ordinal(questionCount), timerStr, localStr));
+      qCount.textContent = '(' + questionCount + ')';
+      qPanel.scrollTop = qPanel.scrollHeight;
+    }
+
+    function deleteQuestion(entry) {
+      if (entry.dataset.status === 'dead') return;
+      entry.dataset.status = 'dead';
+      entry.style.opacity = '0.4';
+      entry.style.textDecoration = 'line-through';
+
+      const numEl = entry.querySelector('.num');
+      const textEl = entry.querySelector('.qtext');
+
+      // Find and mark as dead in data
+      const num = parseInt(numEl.textContent);
+      if (questionData[num - 1]) questionData[num - 1].alive = false;
+
+      renumberQuestions();
+    }
+
+    function renumberQuestions() {
+      const entries = qList.querySelectorAll('.entry');
+      let alive = 0;
+
+      entries.forEach(e => {
+        if (e.dataset.status === 'alive') {
+          alive++;
+          e.querySelector('.num').textContent = alive + ')';
+          e.querySelector('.qtext').textContent = 'You did your ' + ordinal(alive) + ' question';
+        }
+      });
+
+      questionCount = alive;
+      qCount.textContent = alive > 0 ? '(' + alive + ')' : '';
+    }
+
+    function updateRotatorButton() {
+      if (document.body.classList.contains('landscape')) {
+        rotatorBtn.innerHTML = '⟳ Portrait';
+      } else {
+        rotatorBtn.innerHTML = '⟳ Landscape';
+      }
+    }
+
+    function toggleRotation() {
+      isForcedLandscape = !isForcedLandscape;
+
+      if (isForcedLandscape) {
+        document.body.classList.add('landscape');
+      } else {
+        document.body.classList.remove('landscape');
+      }
+
+      updateRotatorButton();
+    }
+
+    // Auto detect orientation (optional)
+    function checkOrientation() {
+      if (!isForcedLandscape) {
+        if (window.innerWidth > window.innerHeight) {
+          document.body.classList.add('landscape');
+        } else {
+          document.body.classList.remove('landscape');
+        }
+      }
+      updateRotatorButton();
+    }
+    window.addEventListener('resize', checkOrientation);
+    checkOrientation();
+
+    // PDF Export
+    function downloadPDF() {
+      const alive = questionData.filter(q => q.alive);
+      if (alive.length === 0) {
+        alert('No questions marked yet!');
+        return;
+      }
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      let y = 18;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('You did ' + alive.length + ' questions', pw / 2, y, { align: 'center' });
+      y += 10;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const today = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'long', year: 'numeric' });
+      const si = timerStartedAt || getLocalFullTime();
+      const ei = timerEndedAt || getLocalFullTime();
+
+      doc.text('Date: ' + today, 18, y); y += 7;
+      doc.text('Started: ' + si, 18, y); y += 7;
+      doc.text('Ended: ' + ei, 18, y); y += 9;
+
+      // Calculate current total time (including running time)
+      const currentTotal = running ? elapsed + (Date.now() - startTime) : elapsed;
+      doc.text('Total Time: ' + fmt(currentTotal), 18, y); y += 12;
+
+      const tableData = [];
+      let qn = 0;
+      questionData.forEach((q, i) => {
+        if (q.alive) {
+          qn++;
+          tableData.push([qn, 'Question ' + ordinal(qn), q.timerTime, q.localTime]);
+        }
+      });
+
+      doc.autoTable({
+        startY: y,
+        head: [['#', 'Question', 'Timer', 'Local Time']],
+        body: tableData,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: [40, 40, 40], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 12 }, 2: { halign: 'center' } },
+        margin: { left: 18, right: 18 }
+      });
+
+      y = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'italic');
+      doc.text('Keep going! Consistency beats intensity.', pw / 2, y, { align: 'center' });
+
+      // Footer - "by harsh"
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(120, 120, 120);
+      doc.text('by harsh', pw / 2, ph - 12, { align: 'center' });
+
+      const cd = today.replace(/,/g, '').replace(/\s+/g, '_');
+      const filename = alive.length + ' question did on ' + cd + '.pdf';
+      doc.save(filename);
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', function(e) {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        if (!running) startTimer();
+        else stopTimer();
+      }
+      if (e.key.toLowerCase() === 'm') markQuestion();
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e863c697cf586',t:'MTc4MDgyMzQzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
